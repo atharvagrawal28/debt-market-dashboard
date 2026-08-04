@@ -27,34 +27,43 @@ python -m app.ingest --days 7     # fill the database
 python -m app.server              # http://127.0.0.1:5000
 ```
 
-### Known issue: long scheduled tasks get killed on this machine
+### Runs killed by sleep
 
-Verified 2026-08-04. **Any** scheduled task that runs for more than a few tens of
-seconds is terminated with exit code `3221225786` (`0xC000013A`,
-`STATUS_CONTROL_C_EXIT`). Reproduced with a bare `python -c "time.sleep(45)"` —
-it is not this project's code:
+A run interrupted by the machine going to sleep dies with exit code
+`3221225786` (`0xC000013A`, `STATUS_CONTROL_C_EXIT`). The System event log shows
+`The system is entering sleep` at exactly those times. There is **no** task time
+limit — a 184-second run completed fine while the laptop was in use; a run is
+simply more likely to be caught the longer it takes.
 
-| Test | Result |
-|---|---|
-| Instant task (`print('hi')`) | exit 0 |
-| 45-second sleep | **killed** |
-| `run_daily.bat` run by hand from a terminal | exit 0 |
-| `run_daily.bat` run by Task Scheduler | **killed** |
+Mitigations already in place:
 
-The same ingest completed fine under Task Scheduler on 2026-08-03 (85 seconds,
-exit 0), so something on the machine changed. Likely candidates, in order:
-antivirus/endpoint protection, a power or sleep policy, or a group policy on
-scheduled tasks. **This needs checking on the machine — it cannot be fixed from
-inside the project.**
-
-Until it is fixed:
-
-- Run `run_daily.bat` by hand (double-click) — that path works.
-- The ingest now **commits each instrument as it is fetched**, so a killed run
-  keeps the work it had already done and the next one continues. A kill costs
-  time, not data.
-- An unfinished run is recorded, and the next run reports
+- The ingest **commits each instrument as it is fetched**, so a killed run keeps
+  the work it had already done. A kill costs time, not data.
+- `StartWhenAvailable` catches up a trigger missed while powered off, and a
+  second trigger at 22:30 backs up the 19:00 one.
+- An unfinished run is recorded; the next run reports
   `RUN DIED  the run started … never finished`.
+- Python runs unbuffered, so a killed run leaves a log showing how far it got
+  (buffered output flushes nothing and looks like an instant crash).
+
+To stop it happening at all, allow the task to wake the machine. This needs an
+**elevated** PowerShell — Task Scheduler refuses `WakeToRun` otherwise:
+
+```powershell
+$s = (Get-ScheduledTask -TaskName "Debt Market Ingest").Settings
+$s.WakeToRun = $true
+Set-ScheduledTask -TaskName "Debt Market Ingest" -Settings $s
+```
+
+### No console window
+
+Task Scheduler runs a `.bat` in a visible `cmd` window. The task therefore
+points at `run_daily_hidden.vbs`, which launches the same batch with window
+style `0` and waits for it — nothing appears on screen, and the task still
+reports the batch's real exit code.
+
+Retries are set to **1**. They were 3, which meant every failed run spawned
+three more windows; with two daily triggers that was up to eight popups a day.
 
 ### Knowing when a source breaks
 
