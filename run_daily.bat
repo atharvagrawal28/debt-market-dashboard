@@ -24,7 +24,12 @@ echo ======== [%date% %time%] starting ingest using "%PY%" >> "data\ingest.log"
 REM 7 days is the widest single export window F-TRAC accepts, so this costs
 REM exactly the same as a 1-day pull but survives a week of missed runs
 REM (holidays, laptop off, VPN down). Re-fetching a stored day is a no-op.
-"%PY%" -m app.ingest --days 7 >> "data\ingest.log" 2>&1
+REM
+REM -u matters: Python buffers stdout when it is redirected to a file, so a
+REM run that gets killed flushes nothing and the log shows only "^C" - which
+REM reads like an instant crash rather than a timeout. Unbuffered output
+REM leaves a trail showing exactly how far it got.
+"%PY%" -u -m app.ingest --days 7 >> "data\ingest.log" 2>&1
 set "RC=%ERRORLEVEL%"
 
 if not "%RC%"=="0" (
@@ -36,7 +41,7 @@ echo [%date% %time%] ingest complete >> "data\ingest.log"
 
 REM Rebuild the published site and push it, so the public link tracks the
 REM database automatically. Skipped silently when no git remote is set up.
-"%PY%" -m app.publish --quiet >> "data\ingest.log" 2>&1
+"%PY%" -u -m app.publish --quiet >> "data\ingest.log" 2>&1
 if errorlevel 1 (
     echo [%date% %time%] PUBLISH FAILED >> "data\ingest.log"
     exit /b 0

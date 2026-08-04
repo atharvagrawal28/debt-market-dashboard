@@ -40,10 +40,19 @@ def usdinr(date=None):
     }
 
 
+# FRED is unreachable from the desk network and every attempt burns the full
+# timeout. Scheduled runs on this machine are killed past ~85 seconds, so a
+# 20-second wait on a source that has never once answered is budget that the
+# feeds which *do* work cannot afford. Kept short and best-effort: if FRED
+# becomes reachable it will still populate.
+BRENT_TIMEOUT = 5
+
+
 def brent(date=None):
     """Latest Brent print at or before `date` from FRED. None if unreachable."""
     try:
-        r = requests.get(FRED_CSV, headers={"User-Agent": USER_AGENT}, timeout=20)
+        r = requests.get(FRED_CSV, headers={"User-Agent": USER_AGENT},
+                         timeout=BRENT_TIMEOUT)
         r.raise_for_status()
     except requests.RequestException:
         return None
