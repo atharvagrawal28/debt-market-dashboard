@@ -398,9 +398,15 @@ def publish(days=None, verbose=True):
         fh.write("\n".join([
             "# The published site is public/ only. The Python backend runs on",
             "# the desk machine and is not part of the deployment.",
-            "app/", "data/", "*.py", "requirements.txt", "*.bat",
-            "index.html", "cd_cp_secondary_processorhtml.html",
-            "reports.db", "*.xls", ".claude/", "__pycache__/", "",
+            "#",
+            "# Paths are root-anchored on purpose: this file uses gitignore",
+            "# syntax, where a bare 'index.html' would also match",
+            "# public/index.html and drop the landing page from the deploy.",
+            "/app/", "/data/", "/.claude/", "/__pycache__/",
+            "/requirements.txt", "/reports.db",
+            "/index.html", "/cd_cp_secondary_processorhtml.html",
+            "/chart_snapshot.html",
+            "*.py", "*.bat", "*.xls", "",
         ]))
 
     say(f"\nWrote {PUBLIC_DIR}")
