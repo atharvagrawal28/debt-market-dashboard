@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "debt-dashboard",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "app.server"],
+      "port": 5000
+    }
+  ]
+}

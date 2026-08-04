@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Fixed Income Closing Report</title>
+<style>
+  :root {
+    --bg: #0b0e14; --panel: #141821; --border: #262c3a; --text: #d7dde5;
+    --muted: #8892a0; --gold: #f5b90b; --up: #ff6b6b; --down: #4dd88c;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 24px 32px 80px; }
+  h1 { color: var(--gold); font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  input[type=date] { background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+  button { background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  button:hover { border-color: var(--gold); color: var(--gold); }
+  button.primary { background: var(--gold); color: #1a1a1a; border-color: var(--gold); font-weight: 600; }
+  button.primary:hover { opacity: 0.9; color: #1a1a1a; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .status { font-size: 12px; color: var(--muted); }
+  .status.ok { color: var(--down); }
+  .status.err { color: var(--up); }
+  .import-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  #particularsText { min-height: 130px; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; }
+  section h2 { color: var(--gold); font-size: 14px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .badge.auto { background: rgba(77,216,140,0.15); color: var(--down); }
+  .badge.manual { background: rgba(245,185,11,0.15); color: var(--gold); }
+  .row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .row input, .row select { background: #0f131b; border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+  .row input[type=text] { flex: 1; min-width: 140px; }
+  .row input[type=number] { width: 100px; }
+  .row .lbl { color: var(--muted); font-size: 12px; width: 90px; flex-shrink: 0; }
+  .remove-btn { background: none; border: none; color: var(--up); cursor: pointer; font-size: 16px; padding: 0 6px; }
+  .add-btn { font-size: 12px; margin-top: 4px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  textarea { width: 100%; background: #0f131b; border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 4px; font-size: 13px; min-height: 90px; font-family: inherit; }
+  .footer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); border-top: 1px solid var(--border); padding: 12px 32px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .kv { font-size: 12px; color: var(--muted); }
+  .credit { text-align: center; color: var(--muted); font-size: 12px; letter-spacing: 0.04em;
+            padding: 22px 0 8px; margin-top: 8px; border-top: 1px solid var(--border); }
+  .credit b { color: var(--gold); font-weight: 700; letter-spacing: 0.06em; }
+  .credit a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+  .credit a:hover { color: var(--gold); border-bottom-color: var(--border); }
+  .credit svg { width: 12px; height: 12px; vertical-align: -1px; margin-right: 4px; fill: #0A66C2; }
+  @media (max-width: 900px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<h1>Fixed Income Closing Report</h1>
+<div class="sub">Pick a date — money market, benchmark curve, T-Bill, SDL, CD/CP ranges and USD/INR fill themselves from CCIL, F-TRAC and FBIL. Only the desk-polled fields (OIS, AAA PSU, top-traded G-Secs) and your commentary are typed.</div>
+
+<div class="topbar">
+  <input type="date" id="datePicker" />
+  <button id="loadBtn" class="primary">Load / Fetch</button>
+  <button id="publicFetchBtn">Re-apply Public Data</button>
+  <button id="ingestBtn">⟳ Pull latest from source</button>
+  <a href="/cdcp" target="_blank"><button type="button">CD/CP Dashboard ↗</button></a>
+  <span id="loadStatus" class="status"></span>
+</div>
+
+<section id="autoPanel" style="display:none">
+  <h2>Auto-derived <span class="badge auto" id="coverageBadge"></span></h2>
+  <div id="autoContent"></div>
+</section>
+
+<section>
+  <h2>Daily Particulars Import <span class="badge auto">Auto-fill</span></h2>
+  <textarea id="particularsText" placeholder="Paste the daily particulars block here..."></textarea>
+  <div class="import-actions">
+    <button id="importBtn" class="primary">Parse & Fill Form</button>
+    <button id="clearImportBtn">Clear Paste</button>
+    <span id="importStatus" class="status"></span>
+  </div>
+</section>
+
+<section>
+  <h2>Money Market <span class="badge manual">Manual</span></h2>
+  <div class="grid3">
+    <div>
+      <div class="row"><span class="lbl">CALL LTR %</span><input type="number" step="0.01" id="call_ltr"></div>
+      <div class="row"><span class="lbl">CALL W.Avg %</span><input type="number" step="0.01" id="call_wavg"></div>
+    </div>
+    <div>
+      <div class="row"><span class="lbl">TREP LTR %</span><input type="number" step="0.01" id="trep_ltr"></div>
+      <div class="row"><span class="lbl">TREP W.Avg %</span><input type="number" step="0.01" id="trep_wavg"></div>
+    </div>
+    <div>
+      <div class="row"><span class="lbl">Volume Crs</span><input type="number" step="0.01" id="mm_vol"></div>
+      <div class="row"><span class="lbl">Vol W.Avg %</span><input type="number" step="0.01" id="mm_vol_wavg"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Top Traded G-Secs <span class="badge manual">Manual</span></h2>
+  <div id="gsecRows"></div>
+  <button class="add-btn" onclick="addGsecRow()">+ Add security</button>
+</section>
+
+<section>
+  <h2>Benchmark G-Sec Curve <span class="badge manual">Manual</span></h2>
+  <div id="benchRows"></div>
+  <button class="add-btn" onclick="addBenchRow()">+ Add benchmark point</button>
+</section>
+
+<div class="grid2">
+  <section>
+    <h2>SDL Range <span class="badge manual">Manual</span></h2>
+    <div id="sdlRows"></div>
+    <button class="add-btn" onclick="addRangeRow('sdlRows')">+ Add tenor</button>
+  </section>
+  <section>
+    <h2>AAA PSU Corporate Bonds <span class="badge manual">Manual</span></h2>
+    <div id="aaaRows"></div>
+    <button class="add-btn" onclick="addRangeRow('aaaRows')">+ Add tenor</button>
+  </section>
+</div>
+
+<div class="grid2">
+  <section>
+    <h2>OIS Curve <span class="badge manual">Manual</span></h2>
+    <div id="oisRows"></div>
+    <button class="add-btn" onclick="addOisRow()">+ Add tenor</button>
+  </section>
+  <section>
+    <h2>T-Bill Range <span class="badge manual">Manual</span></h2>
+    <div id="tbillRows"></div>
+    <button class="add-btn" onclick="addTbillRow()">+ Add tenor</button>
+  </section>
+</div>
+
+<div class="grid2">
+  <section>
+    <h2>Money Market (CD) <span class="badge manual">Manual</span></h2>
+    <div id="cdRows"></div>
+    <button class="add-btn" onclick="addRangeRow('cdRows')">+ Add tenor</button>
+  </section>
+  <section>
+    <h2>Brent Oil <span class="badge auto" id="brentBadge">Auto</span></h2>
+    <div class="row"><span class="lbl">USD</span><input type="number" step="0.01" id="brent_price"></div>
+    <div class="kv" id="brentMeta"></div>
+  </section>
+</div>
+
+<section>
+  <h2>USD/INR <span class="badge auto" id="fxBadge">Close: Auto · Open/Range: Manual</span></h2>
+  <div class="grid3">
+    <div class="row"><span class="lbl">Close</span><input type="number" step="0.0001" id="fx_close"></div>
+    <div class="row"><span class="lbl">Open</span><input type="number" step="0.0001" id="fx_open"></div>
+    <div class="row"><span class="lbl">Day Low</span><input type="number" step="0.0001" id="fx_low"><span class="lbl">Day High</span><input type="number" step="0.0001" id="fx_high"></div>
+  </div>
+  <div class="kv" id="fxMeta"></div>
+</section>
+
+<section>
+  <h2>News Summary <span class="badge manual">Manual</span></h2>
+  <div id="newsRows"></div>
+  <button class="add-btn" onclick="addNewsRow()">+ Add headline</button>
+</section>
+
+<section>
+  <h2>AI Closing Commentary <span class="badge manual">Manual</span></h2>
+  <textarea id="commentary" placeholder="Free-text market commentary..."></textarea>
+</section>
+
+<div class="credit">
+  Made By
+  <a href="https://www.linkedin.com/company/finqrate" target="_blank" rel="noopener noreferrer"
+     title="Finqrate on LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/></svg><b>Finqrate</b></a>
+  for
+  <a href="https://www.linkedin.com/in/swayamjitdalai/" target="_blank" rel="noopener noreferrer"
+     title="Swayamjeet Dalai on LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/></svg>Swayamjeet Dalai</a>
+</div>
+
+<div class="footer-bar">
+  <button id="saveBtn" class="primary">Save Report</button>
+  <span id="saveStatus" class="status"></span>
+  <span style="flex:1"></span>
+  <span class="kv">Export:</span>
+  <button onclick="exportReport('txt')">TXT</button>
+  <button onclick="exportReport('html')">HTML</button>
+  <button onclick="exportReport('docx')">DOCX</button>
+  <button onclick="exportReport('xlsx')">XLSX</button>
+  <button onclick="exportReport('csv')">CSV</button>
+</div>
+
+<script>
+let currentDate = new Date().toISOString().slice(0, 10);
+document.getElementById("datePicker").value = currentDate;
+
+// ---------- dynamic row builders ----------
+function rowEl(html) {
+  const div = document.createElement("div");
+  div.className = "row";
+  div.innerHTML = html;
+  return div;
+}
+
+// Values reach these builders from the feeds now, not just from typing, so
+// they go through the same escaping as anything else rendered as markup.
+const attr = v => String(v == null ? "" : v)
+  .replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function addGsecRow(name = "", today = "", prev = "") {
+  const el = rowEl(`
+    <input type="text" placeholder="e.g. 06.94 GS 2036" class="g-name" value="${attr(name)}">
+    <input type="number" step="0.0001" placeholder="Yield today" class="g-today" value="${attr(today)}">
+    <input type="number" step="0.0001" placeholder="Yield prev" class="g-prev" value="${attr(prev)}">
+    <button class="remove-btn" onclick="this.parentElement.remove()">×</button>`);
+  document.getElementById("gsecRows").appendChild(el);
+}
+
+function addBenchRow(tenor = "", name = "", today = "", prev = "") {
+  const el = rowEl(`
+    <input type="text" placeholder="Tenor e.g. 10 Years" class="b-tenor" value="${attr(tenor)}" style="width:110px">
+    <input type="text" placeholder="Security" class="b-name" value="${attr(name)}">
+    <input type="number" step="0.0001" placeholder="Yield today" class="b-today" value="${attr(today)}">
+    <input type="number" step="0.0001" placeholder="Yield prev" class="b-prev" value="${attr(prev)}">
+    <button class="remove-btn" onclick="this.parentElement.remove()">×</button>`);
+  document.getElementById("benchRows").appendChild(el);
+}
+
+function addRangeRow(containerId, tenor = "", low = "", high = "") {
+  const el = rowEl(`
+    <input type="text" placeholder="Tenor" class="r-tenor" value="${tenor}" style="width:110px">
+    <input type="number" step="0.01" placeholder="Low %" class="r-low" value="${low}">
+    <input type="number" step="0.01" placeholder="High %" class="r-high" value="${high}">
+    <button class="remove-btn" onclick="this.parentElement.remove()">×</button>`);
+  document.getElementById(containerId).appendChild(el);
+}
+
+function addOisRow(tenor = "", today = "", prev = "") {
+  const el = rowEl(`
+    <input type="text" placeholder="Tenor" class="o-tenor" value="${tenor}" style="width:110px">
+    <input type="number" step="0.0001" placeholder="Rate today" class="o-today" value="${today}">
+    <input type="number" step="0.0001" placeholder="Rate prev" class="o-prev" value="${prev}">
+    <button class="remove-btn" onclick="this.parentElement.remove()">×</button>`);
+  document.getElementById("oisRows").appendChild(el);
+}
+
+function addTbillRow(tenor = "", today = "", prev = "") {
+  const el = rowEl(`
+    <input type="text" placeholder="Tenor e.g. 91 Days" class="t-tenor" value="${tenor}" style="width:110px">
+    <input type="number" step="0.01" placeholder="Rate today" class="t-today" value="${today}">
+    <input type="number" step="0.01" placeholder="Rate prev" class="t-prev" value="${prev}">
+    <button class="remove-btn" onclick="this.parentElement.remove()">×</button>`);
+  document.getElementById("tbillRows").appendChild(el);
+}
+
+function addNewsRow(category = "Macro", headline = "") {
+  const el = rowEl(`
+    <select class="n-cat" style="width:130px">
+      ${["RBI","G-Secs","Corporate Bonds","Banking","Macro","Global"].map(c =>
+        `<option ${c===category?"selected":""}>${c}</option>`).join("")}
+    </select>
+    <input type="text" placeholder="Headline" class="n-head" value="${attr(headline)}">
+    <button class="remove-btn" onclick="this.parentElement.remove()">×</button>`);
+  document.getElementById("newsRows").appendChild(el);
+}
+
+function clearAllRows() {
+  ["gsecRows","benchRows","sdlRows","aaaRows","oisRows","tbillRows","cdRows","newsRows"]
+    .forEach(id => document.getElementById(id).innerHTML = "");
+}
+
+function seedDefaultRows() {
+  ["3 Year","5 Year","10 Year","15 Year"].forEach(t => addRangeRow("sdlRows", t));
+  ["3 Year","5 Year","10 Year"].forEach(t => addRangeRow("aaaRows", t));
+  ["3 Months","6 Months","12 Month"].forEach(t => addRangeRow("cdRows", t));
+  ["1 Year","3 Year","5 Year","10 Year"].forEach(t => addOisRow(t));
+  ["91 Days","182 Days","364 Days"].forEach(t => addTbillRow(t));
+  for (let i = 0; i < 4; i++) addBenchRow();
+  for (let i = 0; i < 5; i++) addGsecRow();
+  addNewsRow();
+}
+
+// ---------- collect form -> payload ----------
+function collectPayload() {
+  // A blank field must stay blank. The old `|| 0` stored empty inputs as a
+  // real 0.00, which then printed in the report as a genuine rate.
+  const val = v => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
+  const num = id => val(document.getElementById(id).value);
+  const cell = (row, sel) => val(row.querySelector(sel).value);
+
+  function rangeRows(id) {
+    return [...document.getElementById(id).children].map(row => ({
+      tenor_label: row.querySelector(".r-tenor").value,
+      low: cell(row, ".r-low"),
+      high: cell(row, ".r-high"),
+    })).filter(r => r.tenor_label);
+  }
+
+  return {
+    call: { label: "CALL", ltr: num("call_ltr"), weighted_avg: num("call_wavg") },
+    trep: { label: "TREP", ltr: num("trep_ltr"), weighted_avg: num("trep_wavg") },
+    mm_volume: { total_crores: num("mm_vol"), weighted_avg: num("mm_vol_wavg") },
+    top_traded_gsecs: [...document.getElementById("gsecRows").children].map(row => ({
+      name: row.querySelector(".g-name").value,
+      yield_today: cell(row, ".g-today"),
+      yield_prev: cell(row, ".g-prev"),
+    })).filter(r => r.name),
+    benchmark_curve: [...document.getElementById("benchRows").children].map(row => ({
+      tenor_label: row.querySelector(".b-tenor").value,
+      security_name: row.querySelector(".b-name").value,
+      yield_today: cell(row, ".b-today"),
+      yield_prev: cell(row, ".b-prev"),
+    })).filter(r => r.tenor_label),
+    sdl_range: rangeRows("sdlRows"),
+    aaa_psu_corp: rangeRows("aaaRows"),
+    cd_money_market: rangeRows("cdRows"),
+    ois_curve: [...document.getElementById("oisRows").children].map(row => ({
+      tenor_label: row.querySelector(".o-tenor").value,
+      rate_today: cell(row, ".o-today"),
+      rate_prev: cell(row, ".o-prev"),
+    })).filter(r => r.tenor_label),
+    tbill_range: [...document.getElementById("tbillRows").children].map(row => ({
+      tenor_label: row.querySelector(".t-tenor").value,
+      rate_today: cell(row, ".t-today"),
+      rate_prev: cell(row, ".t-prev"),
+    })).filter(r => r.tenor_label),
+    brent: {
+      price_usd: num("brent_price"),
+      as_of: document.getElementById("brentMeta").dataset.asof || "5:00 pm",
+      source: document.getElementById("brentMeta").dataset.source || "Manual",
+    },
+    fx: {
+      pair: "USD/INR",
+      close: num("fx_close"), open: num("fx_open"),
+      day_low: num("fx_low"), day_high: num("fx_high"),
+      source: document.getElementById("fxMeta").dataset.source || "Manual",
+    },
+    news: [...document.getElementById("newsRows").children].map(row => ({
+      category: row.querySelector(".n-cat").value,
+      headline: row.querySelector(".n-head").value,
+      sentiment: "Neutral", importance: 3,
+    })).filter(r => r.headline),
+    ai_commentary: document.getElementById("commentary").value,
+  };
+}
+
+// ---------- populate form <- saved data ----------
+function populateForm(d) {
+  clearAllRows();
+  document.getElementById("call_ltr").value = d.call?.ltr ?? "";
+  document.getElementById("call_wavg").value = d.call?.weighted_avg ?? "";
+  document.getElementById("trep_ltr").value = d.trep?.ltr ?? "";
+  document.getElementById("trep_wavg").value = d.trep?.weighted_avg ?? "";
+  document.getElementById("mm_vol").value = d.mm_volume?.total_crores ?? "";
+  document.getElementById("mm_vol_wavg").value = d.mm_volume?.weighted_avg ?? "";
+  (d.top_traded_gsecs || []).forEach(s => addGsecRow(s.name, s.yield_today, s.yield_prev));
+  (d.benchmark_curve || []).forEach(b => addBenchRow(b.tenor_label, b.security_name, b.yield_today, b.yield_prev));
+  // SDL arrives as low/high when typed, but as a single rate_today when it
+  // comes off the CCIL indicative-yield curve. Accept both.
+  (d.sdl_range || []).forEach(s =>
+    addRangeRow("sdlRows", s.tenor_label, s.low ?? s.rate_today, s.high ?? s.rate_today));
+  (d.aaa_psu_corp || []).forEach(a => addRangeRow("aaaRows", a.tenor_label, a.low, a.high));
+  (d.cd_money_market || []).forEach(c => addRangeRow("cdRows", c.tenor_label, c.low, c.high));
+  (d.ois_curve || []).forEach(o => addOisRow(o.tenor_label, o.rate_today, o.rate_prev));
+  (d.tbill_range || []).forEach(t => addTbillRow(t.tenor_label, t.rate_today, t.rate_prev));
+  (d.news || []).forEach(n => addNewsRow(n.category, n.headline));
+  document.getElementById("commentary").value = d.ai_commentary || "";
+  // A section with no data at all left the user with nothing to type into --
+  // give the hand-entered blocks their blank starter rows back.
+  seedEmptySections();
+  if (d.brent) {
+    document.getElementById("brent_price").value = d.brent.price_usd ?? "";
+    document.getElementById("brentMeta").textContent = d.brent.source || "";
+  }
+  if (d.fx) {
+    document.getElementById("fx_close").value = d.fx.close ?? "";
+    document.getElementById("fx_open").value = d.fx.open ?? "";
+    document.getElementById("fx_low").value = d.fx.day_low ?? "";
+    document.getElementById("fx_high").value = d.fx.day_high ?? "";
+    document.getElementById("fxMeta").textContent = d.fx.source || "";
+  }
+}
+
+// Sections that are still hand-entered need at least one blank row to type
+// into. Only fills the ones that came back completely empty.
+function seedEmptySections() {
+  const empty = id => document.getElementById(id).children.length === 0;
+  if (empty("gsecRows")) for (let i = 0; i < 5; i++) addGsecRow();
+  if (empty("benchRows")) for (let i = 0; i < 4; i++) addBenchRow();
+  if (empty("aaaRows")) ["3 Year", "5 Year", "10 Year"].forEach(t => addRangeRow("aaaRows", t));
+  if (empty("oisRows")) ["1 Year", "3 Year", "5 Year", "10 Year"].forEach(t => addOisRow(t));
+  if (empty("sdlRows")) ["3 Year", "5 Year", "10 Year", "15 Year"].forEach(t => addRangeRow("sdlRows", t));
+  if (empty("cdRows")) ["3 Months", "6 Months", "12 Month"].forEach(t => addRangeRow("cdRows", t));
+  if (empty("tbillRows")) ["91 Days", "182 Days", "364 Days"].forEach(t => addTbillRow(t));
+  if (empty("newsRows")) addNewsRow();
+}
+
+// Replace a section's rows only when the feed actually returned some, so a
+// source that is briefly down never wipes what is already on screen.
+function refill(containerId, rows, build) {
+  if (!rows || !rows.length) return false;
+  document.getElementById(containerId).innerHTML = "";
+  rows.forEach(build);
+  return true;
+}
+
+function applyPublicData(auto) {
+  const sources = [];
+  if (auto.ccil) {
+    const c = auto.ccil;
+    if (c.call) {
+      document.getElementById("call_ltr").value = c.call.ltr ?? "";
+      document.getElementById("call_wavg").value = c.call.weighted_avg ?? "";
+    }
+    if (c.trep) {
+      document.getElementById("trep_ltr").value = c.trep.ltr ?? "";
+      document.getElementById("trep_wavg").value = c.trep.weighted_avg ?? "";
+    }
+    if (c.mm_volume) {
+      document.getElementById("mm_vol").value = c.mm_volume.total_crores ?? "";
+      document.getElementById("mm_vol_wavg").value = c.mm_volume.weighted_avg ?? "";
+    }
+    refill("gsecRows", c.top_traded_gsecs,
+      s => addGsecRow(s.name, s.yield_today, s.yield_prev ?? ""));
+    refill("benchRows", c.benchmark_curve,
+      b => addBenchRow(b.tenor_label, b.security_name, b.yield_today, b.yield_prev ?? ""));
+    refill("oisRows", c.ois_curve,
+      o => addOisRow(o.tenor_label, o.rate_today, o.rate_prev ?? ""));
+
+    // Newly automated: derived from F-TRAC trades and CCIL indicative yields.
+    refill("cdRows", c.cd_money_market,
+      r => addRangeRow("cdRows", r.tenor_label, r.low, r.high));
+    refill("sdlRows", c.sdl_range,
+      r => addRangeRow("sdlRows", r.tenor_label, r.rate_today ?? r.low, r.rate_today ?? r.high));
+    refill("tbillRows", c.tbill_range,
+      t => addTbillRow(t.tenor_label, t.rate_today, t.rate_prev ?? ""));
+
+    renderAutoPanel(c);
+
+    if (c.fx) {
+      document.getElementById("fx_close").value = c.fx.close ?? "";
+      document.getElementById("fx_open").value = c.fx.open ?? "";
+      document.getElementById("fx_low").value = c.fx.day_low ?? "";
+      document.getElementById("fx_high").value = c.fx.day_high ?? "";
+      document.getElementById("fxMeta").textContent = c.fx.source || "";
+      document.getElementById("fxMeta").dataset.source = c.fx.source || "";
+    }
+    sources.push(...(c._sources || []));
+  }
+
+  if (auto.usdinr && !document.getElementById("fx_close").value) {
+    document.getElementById("fx_close").value = auto.usdinr.rate;
+    document.getElementById("fxMeta").textContent =
+      `Close auto-filled from ${auto.usdinr.source}, published ${auto.usdinr.as_of_date}.`;
+    document.getElementById("fxMeta").dataset.source = auto.usdinr.source;
+    sources.push(auto.usdinr.source);
+  }
+
+  if (auto.brent) {
+    document.getElementById("brent_price").value = auto.brent.price;
+    document.getElementById("brentMeta").textContent =
+      `Auto-filled from ${auto.brent.source}, latest print as of ${auto.brent.as_of_date}.`;
+    document.getElementById("brentMeta").dataset.source = auto.brent.source;
+    document.getElementById("brentMeta").dataset.asof = "5:00 pm";
+    sources.push(auto.brent.source);
+  }
+
+  return sources;
+}
+
+// ---------- read-only panel for values that are computed, not typed ----------
+const esc = s => String(s == null ? "" : s)
+  .replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function miniTable(title, columns, rows) {
+  if (!rows || !rows.length) return "";
+  const head = columns.map(c => `<th style="text-align:left;padding:4px 10px 4px 0;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase">${esc(c[0])}</th>`).join("");
+  const body = rows.map(r => "<tr>" + columns.map(c => {
+    let v = r[c[1]];
+    if (v == null || v === "") v = "–";
+    else if (typeof v === "number") v = c[2] ? v.toFixed(c[2]) : v.toLocaleString("en-IN");
+    let colour = "";
+    if (c[1].endsWith("_bps") && typeof r[c[1]] === "number") {
+      colour = r[c[1]] > 0 ? "color:var(--up)" : r[c[1]] < 0 ? "color:var(--down)" : "";
+      if (typeof r[c[1]] === "number") v = (r[c[1]] > 0 ? "+" : "") + r[c[1]].toFixed(1);
+    }
+    return `<td style="padding:4px 10px 4px 0;font-size:12.5px;${colour}">${esc(v)}</td>`;
+  }).join("") + "</tr>").join("");
+  return `<div style="margin-bottom:16px"><div style="font-size:12px;color:var(--gold);font-weight:600;margin-bottom:6px">${esc(title)}</div>
+    <table style="border-collapse:collapse"><tr>${head}</tr>${body}</table></div>`;
+}
+
+// Section headers carried a hardcoded Manual/Auto badge. Now that what is
+// automated depends on what the feeds returned, the badge follows the data.
+const BADGE_FOR = {
+  "MONEY MARKET": "call", "BENCHMARK G-SEC CURVE": "benchmark_curve",
+  "T-BILL RANGE": "tbill_range", "SDL RANGE": "sdl_range",
+  "MONEY MARKET (CD)": "cd_money_market", "TOP TRADED G-SECS": "top_traded_gsecs",
+  "AAA PSU CORPORATE BONDS": "aaa_psu_corp", "OIS CURVE": "ois_curve",
+};
+
+function updateBadges(c) {
+  const filled = key => {
+    const v = c[key];
+    if (Array.isArray(v)) return v.length > 0;
+    if (v && typeof v === "object") return Object.values(v).some(x => typeof x === "number");
+    return false;
+  };
+  const stale = c._stale || {};
+  const provenance = c._provenance || {};
+  document.querySelectorAll("section h2").forEach(h => {
+    const title = h.childNodes[0].textContent.trim().toUpperCase();
+    const key = BADGE_FOR[title];
+    if (!key) return;
+    const badge = h.querySelector(".badge");
+    if (!badge) return;
+
+    // A field that no feed covers is never "Auto" just because it has a value
+    // -- that value came from you. Say "Saved" so the distinction stays clear.
+    if (provenance[key] === "manual") {
+      badge.className = "badge manual";
+      badge.textContent = filled(key) ? "Manual · saved" : "Manual";
+      return;
+    }
+    // Value supplied by your saved copy, not by a feed on this run.
+    if ((c._overridden || []).includes(key)) {
+      badge.className = "badge manual";
+      badge.textContent = "Saved · your edit";
+      return;
+    }
+    if (filled(key)) {
+      badge.className = "badge auto";
+      badge.textContent = stale[key] ? `Auto · from ${stale[key]}` : "Auto";
+    } else {
+      badge.className = "badge manual";
+      badge.textContent = "Manual · no feed data";
+    }
+  });
+}
+
+function renderAutoPanel(c) {
+  updateBadges(c);
+  const blocks = [
+    miniTable("CD/CP spread over T-Bill (bps)", [
+      ["Tenor", "tenor_label"], ["T-Bill", "tbill_ytm", 4],
+      ["CD w.avg", "cd_wavg", 4], ["CD spread", "cd_spread_bps"],
+      ["CP w.avg", "cp_wavg", 4], ["CP spread", "cp_spread_bps"]], c.spreads),
+    miniTable("CP secondary — yield range by tenor", [
+      ["Tenor", "tenor_label"], ["Low", "low", 2], ["High", "high", 2],
+      ["W.Avg", "weighted_avg", 4], ["Vol (Cr)", "volume_cr"],
+      ["Trades", "trade_count"], ["Issuers", "issuer_count"]], c.cp_money_market),
+    miniTable("Most active CD issuers", [
+      ["Issuer", "issuer"], ["Vol (Cr)", "volume_cr"],
+      ["Low", "low", 2], ["High", "high", 2], ["W.Avg", "weighted_avg", 4]],
+      (c.cd_issuers || []).slice(0, 8)),
+    miniTable("Money market detail", [
+      ["Instrument", "kind"], ["Open", "open", 2], ["High", "high", 2],
+      ["Low", "low", 2], ["Last", "last_trade", 2], ["W.Avg", "weighted_avg", 4],
+      ["Vol (Cr)", "volume_cr"]], c.mm_detail),
+  ].filter(Boolean).join("");
+
+  const panel = document.getElementById("autoPanel");
+  if (!blocks) { panel.style.display = "none"; return; }
+  panel.style.display = "";
+  document.getElementById("autoContent").innerHTML = blocks;
+
+  const stale = c._stale || {};
+  const staleNote = Object.keys(stale).length
+    ? ` · using ${Object.entries(stale).map(([k, v]) => `${k} from ${v}`).join(", ")}`
+    : "";
+  document.getElementById("coverageBadge").textContent =
+    `${(c._sources || []).length} live source(s)${staleNote}`;
+}
+
+async function pullFromSource() {
+  const btn = document.getElementById("ingestBtn");
+  const statusEl = document.getElementById("loadStatus");
+  currentDate = document.getElementById("datePicker").value;
+  btn.disabled = true;
+  statusEl.textContent = "Downloading from CCIL F-TRAC and CCIL public pages…";
+  statusEl.className = "status";
+  try {
+    const res = await fetch("/api/ingest", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: currentDate, days: 1 }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+    statusEl.textContent = `Pulled ${data.trade_rows} trade rows — ` +
+      `${data.coverage.auto_filled}/${data.coverage.auto_fields} blocks auto-filled.`;
+    statusEl.className = "status ok";
+    await fetchPublicData();
+  } catch (e) {
+    statusEl.textContent = "Pull failed: " + e.message;
+    statusEl.className = "status err";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function fetchPublicData() {
+  currentDate = document.getElementById("datePicker").value;
+  const statusEl = document.getElementById("loadStatus");
+  statusEl.textContent = "Fetching CCIL/FBIL/FRED public data...";
+  statusEl.className = "status";
+  try {
+    const auto = await fetch(`/api/auto-fetch/${currentDate}`).then(r => r.json());
+    const sources = applyPublicData(auto);
+    statusEl.textContent = sources.length
+      ? `Fetched public data from ${sources.join("; ")}. Review, then Save Report.`
+      : "No public data returned for this date.";
+    statusEl.className = sources.length ? "status ok" : "status err";
+  } catch (e) {
+    statusEl.textContent = "Public fetch failed: " + e.message;
+    statusEl.className = "status err";
+  }
+}
+
+// ---------- paste/import daily particulars ----------
+async function importParticulars() {
+  currentDate = document.getElementById("datePicker").value;
+  const statusEl = document.getElementById("importStatus");
+  const text = document.getElementById("particularsText").value.trim();
+  if (!text) {
+    statusEl.textContent = "Paste the daily particulars first.";
+    statusEl.className = "status err";
+    return;
+  }
+
+  statusEl.textContent = "Parsing...";
+  statusEl.className = "status";
+
+  try {
+    const res = await fetch("/api/parse-particulars", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, report_date: currentDate }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const parsed = await res.json();
+    populateForm(parsed);
+    statusEl.textContent = "Filled the form from pasted particulars. Review, then Save Report.";
+    statusEl.className = "status ok";
+  } catch (e) {
+    statusEl.textContent = "Parse failed: " + e.message;
+    statusEl.className = "status err";
+  }
+}
+
+document.getElementById("importBtn").addEventListener("click", importParticulars);
+document.getElementById("clearImportBtn").addEventListener("click", () => {
+  document.getElementById("particularsText").value = "";
+  document.getElementById("importStatus").textContent = "";
+});
+
+// ---------- backend reachability ----------
+// Opening this file by double-clicking it (file://) or with the server down
+// used to fail silently and report "no public fields returned", which looks
+// like a data problem rather than a stopped backend. Say what is actually wrong.
+function showBackendError(detail) {
+  const statusEl = document.getElementById("loadStatus");
+  const onFile = location.protocol === "file:";
+  statusEl.className = "status err";
+  statusEl.textContent = onFile
+    ? "Opened as a local file — the API cannot be reached this way. Start the server (start_dashboard.bat) and open http://127.0.0.1:5000"
+    : `Backend not reachable (${detail}). Start it with: python -m app.server`;
+
+  const panel = document.getElementById("autoPanel");
+  panel.style.display = "";
+  document.getElementById("coverageBadge").textContent = "offline";
+  document.getElementById("autoContent").innerHTML = onFile
+    ? `<div style="font-size:13px;line-height:1.7">
+         This page is running from <code>${esc(location.protocol)}</code>, so calls to
+         <code>/api/…</code> never reach the backend.<br>
+         <b>Fix:</b> double-click <code>start_dashboard.bat</code>, then open
+         <a href="http://127.0.0.1:5000" style="color:var(--gold)">http://127.0.0.1:5000</a>.
+       </div>`
+    : `<div style="font-size:13px;line-height:1.7">
+         The dashboard is served, but <code>/api/…</code> returned an error
+         (<code>${esc(detail)}</code>).<br>
+         Check the terminal running <code>python -m app.server</code> for a traceback.
+       </div>`;
+}
+
+async function backendOnline() {
+  try {
+    const r = await fetch("/api/status", { cache: "no-store" });
+    return r.ok ? await r.json() : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// ---------- load / auto-fetch ----------
+async function loadDate() {
+  currentDate = document.getElementById("datePicker").value;
+  const statusEl = document.getElementById("loadStatus");
+  statusEl.textContent = "Loading...";
+  statusEl.className = "status";
+
+  const health = await backendOnline();
+  if (!health) {
+    showBackendError("connection refused");
+    return;
+  }
+
+  // Always load the merged view: your saved edits laid over the auto-fetched
+  // base. Loading the saved blob on its own used to blank every section the
+  // report had not stored, and skipped the auto-fetch entirely -- which is why
+  // a lightly-filled saved date came up empty with every badge reading Manual.
+  clearAllRows();
+  document.querySelectorAll("input[type=number], input[type=text], textarea").forEach(i => i.value = "");
+
+  let full = null;
+  try {
+    const r = await fetch(`/api/report/${currentDate}/full`, { cache: "no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    full = await r.json();
+  } catch (e) {
+    showBackendError(e.message);
+    return;
+  }
+
+  populateForm(full);
+  renderAutoPanel(full);
+
+  const sources = full._sources || [];
+  const wasSaved = !!full._saved_at;
+  if (sources.length) {
+    statusEl.textContent = (wasSaved
+      ? "Loaded your saved report, topped up from "
+      : "New report — auto-filled from ") + sources.join("; ") + ".";
+    statusEl.className = "status ok";
+  } else {
+    statusEl.textContent = wasSaved
+      ? "Loaded your saved report. No live data stored for this date — run “Pull latest from source”."
+      : "Nothing stored for this date yet — run “Pull latest from source”.";
+    statusEl.className = wasSaved ? "status ok" : "status err";
+  }
+}
+
+document.getElementById("loadBtn").addEventListener("click", loadDate);
+document.getElementById("publicFetchBtn").addEventListener("click", fetchPublicData);
+document.getElementById("ingestBtn").addEventListener("click", pullFromSource);
+
+// ---------- save ----------
+async function saveReport() {
+  const statusEl = document.getElementById("saveStatus");
+  statusEl.textContent = "Saving...";
+  statusEl.className = "status";
+  const payload = collectPayload();
+  try {
+    const res = await fetch(`/api/report/${currentDate}`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    statusEl.textContent = "Saved.";
+    statusEl.className = "status ok";
+  } catch (e) {
+    statusEl.textContent = "Save failed: " + e.message;
+    statusEl.className = "status err";
+  }
+}
+document.getElementById("saveBtn").addEventListener("click", saveReport);
+
+// ---------- export ----------
+function exportReport(fmt) {
+  window.location = `/api/report/${currentDate}/export/${fmt}`;
+}
+
+// initial load
+seedDefaultRows();
+loadDate();
+</script>
+</body>
+</html>

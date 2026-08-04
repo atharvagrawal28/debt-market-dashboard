@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secondary Market Dashboard — CD &amp; CP</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',var(--font-sans);color:#0F172A;background:#fff}
+.shell{max-width:1180px;margin:0 auto;padding:1.5rem 1rem 2.5rem}
+
+/* ── HEADER ── */
+.header{position:relative;overflow:hidden;border-radius:18px;padding:2.25rem 2.25rem 2rem;margin-bottom:1.75rem;background:linear-gradient(120deg,#EFF6FF 0%,#F8FAFC 55%,#FFFFFF 100%);border:1px solid #E2E8F0}
+.header-wave{position:absolute;inset:0;opacity:.55;pointer-events:none}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;position:relative;z-index:1;flex-wrap:wrap}
+.header-text-row{display:flex;align-items:center;gap:16px}
+.header-icon{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#1D4ED8,#3B82F6);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;flex-shrink:0;box-shadow:0 8px 20px -6px rgba(29,78,216,0.45)}
+.header h1{font-size:32px;font-weight:800;letter-spacing:-0.02em;color:#0F172A;line-height:1.15}
+.header p{font-size:15px;color:#64748B;margin-top:6px;font-weight:500}
+.header-meta{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+.glass-card{font-size:13px;color:#334155;background:rgba(255,255,255,0.65);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.8);box-shadow:0 4px 14px -4px rgba(15,23,42,0.08);border-radius:12px;padding:8px 14px;display:flex;align-items:center;gap:8px;white-space:nowrap;font-weight:500}
+.glass-card.user{color:#1D4ED8;font-weight:700}
+.glass-card i{font-size:15px}
+
+/* ── AUTO-FETCH BAR ── */
+.fetch-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:linear-gradient(120deg,#0F172A,#1E293B);border-radius:16px;padding:1.1rem 1.4rem;margin-bottom:1.5rem}
+.fetch-bar label{font-size:12px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.06em}
+.fetch-bar input[type=date],.fetch-bar select{font-size:13.5px;padding:7px 12px;border-radius:10px;border:1px solid #334155;background:#1E293B;color:#F1F5F9;height:36px;font-weight:600}
+.fetch-bar .spacer{flex:1}
+.btn-glow{height:36px;padding:0 18px;font-size:13.5px;border-radius:10px;border:none;background:linear-gradient(135deg,#1D4ED8,#3B82F6);color:#fff;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;transition:all .15s ease;box-shadow:0 6px 16px -6px rgba(59,130,246,.6)}
+.btn-glow:hover{transform:translateY(-1px);box-shadow:0 10px 22px -6px rgba(59,130,246,.7)}
+.btn-glow:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-ghost{height:36px;padding:0 14px;font-size:13px;border-radius:10px;border:1px solid #334155;background:transparent;color:#CBD5E1;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.btn-ghost:hover{border-color:#64748B;color:#fff}
+.fetch-status{font-size:12.5px;color:#94A3B8;font-weight:500;display:flex;align-items:center;gap:6px}
+.fetch-status.ok{color:#34D399}
+.fetch-status.err{color:#FCA5A5}
+
+/* ── UPLOAD CARDS ── */
+.section-title{font-size:20px;font-weight:700;color:#0F172A;margin:0 0 .15rem;letter-spacing:-0.01em}
+.section-sub{font-size:14px;color:#64748B;margin-bottom:1rem;font-weight:500}
+.upload-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:2rem}
+.drop-zone{border-radius:18px;background:#fff;border:1px solid #E2E8F0;padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:box-shadow .2s ease,transform .2s ease,border-color .2s ease;box-shadow:0 1px 3px rgba(15,23,42,0.04)}
+.drop-zone:hover{box-shadow:0 14px 32px -10px rgba(29,78,216,0.18);transform:translateY(-3px);border-color:#BFDBFE}
+.drop-zone.over{border-color:#1D4ED8;background:#EFF6FF;box-shadow:0 14px 32px -10px rgba(29,78,216,0.25)}
+.drop-zone.loaded{border-color:#A7F3D0;background:linear-gradient(180deg,#F0FDF9 0%,#FFFFFF 60%)}
+.dz-inner{border:1.5px dashed #CBD5E1;border-radius:14px;padding:1.75rem 1rem;background:#F8FAFC;transition:background .2s ease,border-color .2s ease}
+.drop-zone:hover .dz-inner{background:#F1F6FE;border-color:#93C5FD}
+.drop-zone.loaded .dz-inner{background:#ECFDF5;border-color:#6EE7B7}
+.dz-icon-wrap{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#1D4ED8,#3B82F6);display:flex;align-items:center;justify-content:center;margin:0 auto .85rem;font-size:26px;color:#fff;box-shadow:0 8px 18px -6px rgba(29,78,216,0.4);transition:all .2s ease}
+.drop-zone.loaded .dz-icon-wrap{background:linear-gradient(135deg,#10B981,#34D399);box-shadow:0 8px 18px -6px rgba(16,185,129,0.4)}
+.dz-label{font-size:17px;font-weight:700;color:#0F172A}
+.dz-sub{font-size:13px;color:#64748B;margin-top:.3rem;font-weight:500}
+.dz-badge{display:inline-block;margin-top:.6rem;font-size:12px;font-weight:700;padding:4px 12px;border-radius:99px;background:#D1FAE5;color:#065F46}
+.file-input{display:none}
+.collapsible-head{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;user-select:none}
+.collapsible-head .chev{font-size:18px;color:#94A3B8;transition:transform .2s ease}
+.collapsed .chev{transform:rotate(-90deg)}
+.collapsed .upload-row{display:none}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;margin:0 0 1.1rem;border-bottom:2px solid #E2E8F0}
+.tab{padding:11px 22px;font-size:14px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;color:#64748B;transition:color .15s ease,border-color .15s ease;display:flex;align-items:center;gap:7px}
+.tab:hover{color:#1D4ED8}
+.tab.active{color:#1D4ED8;border-bottom-color:#1D4ED8}
+.tab-icon{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;background:#F1F5F9;color:#64748B}
+.tab.active .tab-icon{background:#1D4ED8;color:#fff}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 1.1rem}
+.stat{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:.95rem 1.15rem;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,0.04)}
+.stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#1D4ED8,#60A5FA)}
+.stat:nth-child(2)::before{background:linear-gradient(180deg,#F59E0B,#FBBF24)}
+.stat:nth-child(3)::before{background:linear-gradient(180deg,#10B981,#34D399)}
+.stat:nth-child(4)::before{background:linear-gradient(180deg,#8B5CF6,#A78BFA)}
+.stat-label{font-size:11.5px;color:#64748B;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.stat-val{font-size:23px;font-weight:800;color:#0F172A;letter-spacing:-0.01em}
+
+/* ── TENOR STRIP ── */
+.tenor-wrap{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:1rem 1.15rem;margin-bottom:1.1rem;box-shadow:0 1px 3px rgba(15,23,42,0.04)}
+.tenor-head{font-size:12.5px;font-weight:700;color:#0F172A;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;display:flex;align-items:center;gap:7px}
+.tenor-head .auto-pill{font-size:10px;font-weight:800;padding:3px 9px;border-radius:99px;background:#D1FAE5;color:#065F46;letter-spacing:.03em}
+.tenor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:10px}
+.tenor-card{border:1px solid #E2E8F0;border-radius:11px;padding:.7rem .85rem;background:#F8FAFC}
+.tenor-name{font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em}
+.tenor-range{font-size:17px;font-weight:800;color:#0F172A;margin:3px 0 2px;letter-spacing:-0.01em}
+.tenor-meta{font-size:11.5px;color:#64748B;font-weight:500}
+.chg{font-size:11.5px;font-weight:700}
+.chg.up{color:#DC2626}.chg.down{color:#059669}.chg.flat{color:#94A3B8}
+
+/* ── CHARTS ── */
+/* Palette: categorical slots 1-4, validated for CVD separation against a
+   white surface (worst adjacent ΔE 9.1 protan / 22.9 normal). Slot order is
+   fixed per tenor, so filtering the range never repaints a series. */
+.chart-controls{display:flex;align-items:center;gap:10px;margin:0 0 1rem;flex-wrap:wrap}
+.chart-controls .lbl{font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.06em}
+.seg{display:inline-flex;border:1px solid #E2E8F0;border-radius:10px;overflow:hidden;background:#fff}
+.seg button{border:none;background:#fff;color:#64748B;font-size:13px;font-weight:700;padding:0 14px;height:34px;cursor:pointer;transition:background .15s ease,color .15s ease}
+.seg button+button{border-left:1px solid #E2E8F0}
+.seg button:hover{background:#F1F5F9;color:#0F172A}
+.seg button.on{background:#1D4ED8;color:#fff}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.1rem}
+.chart-card{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:1.1rem 1.25rem 1rem;box-shadow:0 1px 3px rgba(15,23,42,0.04);min-width:0}
+.chart-card.wide{grid-column:1/-1}
+.chart-title{font-size:14px;font-weight:700;color:#0F172A;letter-spacing:-0.01em}
+.chart-sub{font-size:12px;color:#64748B;font-weight:500;margin-top:2px}
+.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:.5rem}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:.6rem}
+.legend-item{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#52514E;font-weight:600}
+.legend-swatch{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.chart-svg{width:100%;height:auto;display:block;overflow:visible}
+.chart-svg .grid{stroke:#E1E0D9;stroke-width:1}
+.chart-svg .axis{stroke:#C3C2B7;stroke-width:1}
+.chart-svg .tick{fill:#898781;font-size:10.5px;font-variant-numeric:tabular-nums}
+.chart-svg .endlabel{font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.chart-svg .crosshair{stroke:#94A3B8;stroke-width:1}
+.chart-svg .hit{fill:transparent;cursor:crosshair}
+.chart-tip{position:fixed;z-index:60;pointer-events:none;background:#0F172A;color:#F1F5F9;border-radius:9px;padding:8px 11px;font-size:12px;line-height:1.55;box-shadow:0 10px 26px -8px rgba(15,23,42,.5);opacity:0;transition:opacity .1s ease;white-space:nowrap}
+.chart-tip.on{opacity:1}
+.chart-tip .t-date{font-weight:700;margin-bottom:4px;color:#fff}
+.chart-tip .t-row{display:flex;align-items:center;gap:7px}
+.chart-tip .t-sw{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.chart-tip .t-val{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:700}
+.chart-empty{padding:2rem 1rem;text-align:center;color:#64748B;font-size:13px;font-weight:500}
+.chart-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:.75rem}
+.chart-table th{background:#F1F5F9;color:#334155;font-size:10.5px;padding:6px 8px;text-align:right;text-transform:uppercase;letter-spacing:.04em;position:static}
+.chart-table th:first-child{text-align:left}
+.chart-table td{padding:5px 8px;border-bottom:1px solid #F1F5F9;text-align:right;font-variant-numeric:tabular-nums}
+.chart-table td:first-child{text-align:left;font-weight:600}
+@media (max-width:900px){.chart-grid{grid-template-columns:1fr}}
+
+/* ── TOOLBAR ── */
+.toolbar{display:flex;align-items:center;gap:10px;margin:.5rem 0 .85rem;flex-wrap:wrap}
+.toolbar input,.toolbar select{font-size:13.5px;padding:7px 12px;border-radius:10px;border:1px solid #E2E8F0;background:#fff;color:#0F172A;height:36px;font-weight:500;transition:border-color .15s ease,box-shadow .15s ease}
+.toolbar input:focus,.toolbar select:focus{outline:none;border-color:#1D4ED8;box-shadow:0 0 0 3px rgba(29,78,216,0.12)}
+.toolbar input{width:190px}
+.btn{height:36px;padding:0 16px;font-size:13.5px;border-radius:10px;border:1px solid #E2E8F0;background:#fff;color:#0F172A;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-weight:700;transition:all .15s ease}
+.btn:hover{background:#F8FAFC;border-color:#CBD5E1}
+.btn.primary{background:linear-gradient(135deg,#1D4ED8,#2563EB);color:#fff;border:none;box-shadow:0 6px 16px -6px rgba(29,78,216,0.45)}
+.btn.primary:hover{background:linear-gradient(135deg,#1E40AF,#1D4ED8);box-shadow:0 8px 20px -6px rgba(29,78,216,0.55);transform:translateY(-1px)}
+.btn.primary:active{transform:translateY(0)}
+
+/* ── TABLE ── */
+.tbl-wrap{border:1px solid #E2E8F0;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,0.04)}
+.tbl-scroll{overflow:auto;max-height:420px}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+thead th{background:linear-gradient(180deg,#1D4ED8,#1E40AF);color:#fff;font-weight:700;font-size:11.5px;padding:11px 10px;position:sticky;top:0;text-align:center;white-space:nowrap;letter-spacing:.03em;text-transform:uppercase}
+tbody tr:nth-child(even){background:#F8FAFC}
+tbody tr:nth-child(odd){background:#fff}
+tbody tr{transition:background .12s ease}
+tbody tr:hover{background:#EFF6FF}
+tbody td{padding:8px 10px;border-bottom:1px solid #F1F5F9;color:#0F172A;text-align:center;font-weight:500}
+tbody td.name{text-align:left;padding-left:14px;font-weight:600}
+.msg{font-size:12.5px;color:#64748B;padding:.4rem 0;display:flex;align-items:center;gap:6px;font-weight:500}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:2.75rem 1.5rem;background:linear-gradient(180deg,#F8FAFC,#fff);border-radius:14px;border:1px dashed #E2E8F0}
+.empty-icon-wrap{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#EFF6FF,#DBEAFE);display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;font-size:28px;color:#1D4ED8}
+.empty-title{font-size:16px;font-weight:700;color:#0F172A;margin-bottom:4px}
+.empty-desc{font-size:13.5px;color:#64748B;font-weight:500}
+
+/* ── TRUST BAR ── */
+.trust-bar{margin-top:2rem;padding:1.1rem 1.5rem;border-radius:16px;background:linear-gradient(120deg,#0F172A,#1E293B);display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap}
+.trust-item{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#E2E8F0}
+.trust-item i{font-size:15px;color:#34D399}
+.credit{text-align:center;font-size:12.5px;color:#94A3B8;font-weight:500;letter-spacing:.04em;padding:20px 0 4px}
+.credit b{color:#1D4ED8;font-weight:800;letter-spacing:.06em}
+.credit a{color:inherit;text-decoration:none;border-bottom:1px solid transparent;transition:border-color .15s ease,color .15s ease}
+.credit a:hover{color:#1D4ED8;border-bottom-color:#1D4ED8}
+.credit .li{font-size:13px;vertical-align:-1px;margin-right:3px;color:#0A66C2}
+@media (max-width:820px){.upload-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="header">
+    <svg class="header-wave" viewBox="0 0 1180 200" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0,140 C200,180 350,90 580,120 C800,150 950,80 1180,110 L1180,200 L0,200 Z" fill="#DBEAFE" opacity="0.5"></path>
+      <path d="M0,160 C220,120 420,170 650,140 C880,110 1000,160 1180,150 L1180,200 L0,200 Z" fill="#BFDBFE" opacity="0.4"></path>
+    </svg>
+    <div class="header-top">
+      <div class="header-text-row">
+        <div class="header-icon"><i class="ti ti-chart-candle" aria-hidden="true"></i></div>
+        <div>
+          <h1>Secondary Market Dashboard</h1>
+          <p>Certificate of Deposit &amp; Commercial Paper &nbsp;·&nbsp; Trade aggregation by issuer, maturity &amp; yield</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="glass-card"><i class="ti ti-calendar" aria-hidden="true"></i><span id="today-date"></span></div>
+        <div class="glass-card user"><i class="ti ti-user-circle" aria-hidden="true"></i>Swayamjit Dalai</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Automated path: pick a date, the server already has the F-TRAC data. -->
+  <div class="fetch-bar">
+    <label for="dateSel">Deal date</label>
+    <input type="date" id="dateSel">
+    <button class="btn-glow" id="loadBtn"><i class="ti ti-database"></i> Load from database</button>
+    <button class="btn-ghost" id="fetchBtn"><i class="ti ti-cloud-download"></i> Fetch latest from F-TRAC</button>
+    <span class="spacer"></span>
+    <span class="fetch-status" id="fetchStatus"><i class="ti ti-loader-2"></i> Checking database…</span>
+  </div>
+
+  <div id="uploadSection" class="collapsed">
+    <div class="collapsible-head" id="uploadToggle">
+      <div>
+        <div class="section-title">Manual upload <span style="font-size:13px;font-weight:600;color:#94A3B8">(fallback)</span></div>
+        <div class="section-sub">Only needed for a date outside F-TRAC's export window, or an offline file</div>
+      </div>
+      <i class="ti ti-chevron-down chev" aria-hidden="true"></i>
+    </div>
+    <div class="upload-row">
+      <div class="drop-zone" id="dz-cd" onclick="document.getElementById('fi-cd').click()">
+        <div class="dz-inner">
+          <div class="dz-icon-wrap"><i class="ti ti-cloud-upload" aria-hidden="true"></i></div>
+          <div class="dz-label">CD Trades</div>
+          <div class="dz-sub" id="sub-cd">Drop .xls / .xlsx or click to browse</div>
+          <span class="dz-badge" id="badge-cd" style="display:none"></span>
+        </div>
+      </div>
+      <div class="drop-zone" id="dz-cp" onclick="document.getElementById('fi-cp').click()">
+        <div class="dz-inner">
+          <div class="dz-icon-wrap"><i class="ti ti-cloud-upload" aria-hidden="true"></i></div>
+          <div class="dz-label">CP Trades</div>
+          <div class="dz-sub" id="sub-cp">Drop .xls / .xlsx or click to browse</div>
+          <span class="dz-badge" id="badge-cp" style="display:none"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <input type="file" class="file-input" id="fi-cd" accept=".xlsx,.xltx,.xlsm,.xls">
+  <input type="file" class="file-input" id="fi-cp" accept=".xlsx,.xltx,.xlsm,.xls">
+
+  <!-- One filter row, scoping every chart in both tabs. -->
+  <div class="chart-controls" id="chartControls" style="display:none">
+    <span class="lbl">Trend window</span>
+    <span class="seg" id="rangeSeg">
+      <button data-days="10">10D</button>
+      <button data-days="30" class="on">30D</button>
+      <button data-days="365">All</button>
+    </span>
+    <span class="seg" id="viewSeg">
+      <button data-view="chart" class="on"><i class="ti ti-chart-line"></i> Chart</button>
+      <button data-view="table"><i class="ti ti-table"></i> Table</button>
+    </span>
+    <span class="fetch-status" id="chartStatus" style="color:#64748B"></span>
+  </div>
+
+  <div class="tabs" id="tabs" style="display:none">
+    <div class="tab active" data-tab="cd"><span class="tab-icon"><i class="ti ti-building-bank" aria-hidden="true"></i></span>Certificate of Deposit (CD)</div>
+    <div class="tab" data-tab="cp"><span class="tab-icon"><i class="ti ti-file-invoice" aria-hidden="true"></i></span>Commercial Paper (CP)</div>
+  </div>
+
+  <div class="tab-panel active" id="panel-cd">
+    <div class="stats" id="stats-cd" style="display:none"></div>
+    <div class="tenor-wrap" id="tenor-cd" style="display:none"></div>
+    <div class="chart-grid" id="charts-cd" style="display:none">
+      <div class="chart-card wide" id="trend-cd"></div>
+      <div class="chart-card" id="curve-cd"></div>
+      <div class="chart-card" id="vol-cd"></div>
+    </div>
+    <div class="toolbar" id="tb-cd" style="display:none">
+      <input type="text" id="search-cd" placeholder="Search issuer…">
+      <select id="sort-cd">
+        <option value="default">Sort: Maturity → Bank → Rate ↑</option>
+        <option value="name">Sort: Bank → Maturity → Rate ↑</option>
+        <option value="yield">Sort: Rate ↑</option>
+        <option value="qtm">Sort: QTM ↓</option>
+      </select>
+      <button class="btn primary" id="dl-cd"><i class="ti ti-download"></i> Download CD Excel</button>
+    </div>
+    <p class="msg" id="msg-cd"></p>
+    <div class="tbl-wrap" id="tw-cd" style="display:none">
+      <div class="tbl-scroll">
+        <table><thead><tr>
+          <th style="width:82px">Deal date</th>
+          <th style="width:160px">Issuer</th>
+          <th style="width:65px">Instrument</th>
+          <th style="width:82px">Maturity</th>
+          <th style="width:68px">Rate (%)</th>
+          <th style="width:82px">QTM (Crs)</th>
+        </tr></thead><tbody id="tbody-cd"></tbody></table>
+      </div>
+    </div>
+    <div class="empty" id="empty-cd">
+      <div class="empty-icon-wrap"><i class="ti ti-building-bank" aria-hidden="true"></i></div>
+      <div class="empty-title">No CD data loaded yet</div>
+      <div class="empty-desc">Pick a deal date above and hit “Load from database”</div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-cp">
+    <div class="stats" id="stats-cp" style="display:none"></div>
+    <div class="tenor-wrap" id="tenor-cp" style="display:none"></div>
+    <div class="chart-grid" id="charts-cp" style="display:none">
+      <div class="chart-card wide" id="trend-cp"></div>
+      <div class="chart-card" id="curve-cp"></div>
+      <div class="chart-card" id="vol-cp"></div>
+    </div>
+    <div class="toolbar" id="tb-cp" style="display:none">
+      <input type="text" id="search-cp" placeholder="Search issuer…">
+      <select id="sort-cp">
+        <option value="default">Sort: Maturity → Issuer → Rate ↑</option>
+        <option value="name">Sort: Issuer → Maturity → Rate ↑</option>
+        <option value="yield">Sort: Rate ↑</option>
+        <option value="qtm">Sort: QTM ↓</option>
+      </select>
+      <button class="btn primary" id="dl-cp"><i class="ti ti-download"></i> Download CP Excel</button>
+    </div>
+    <p class="msg" id="msg-cp"></p>
+    <div class="tbl-wrap" id="tw-cp" style="display:none">
+      <div class="tbl-scroll">
+        <table><thead><tr>
+          <th style="width:82px">Deal date</th>
+          <th style="width:190px">Issuer</th>
+          <th style="width:65px">Instrument</th>
+          <th style="width:82px">Maturity</th>
+          <th style="width:68px">Rate (%)</th>
+          <th style="width:82px">QTM (Crs)</th>
+        </tr></thead><tbody id="tbody-cp"></tbody></table>
+      </div>
+    </div>
+    <div class="empty" id="empty-cp">
+      <div class="empty-icon-wrap"><i class="ti ti-file-invoice" aria-hidden="true"></i></div>
+      <div class="empty-title">No CP data loaded yet</div>
+      <div class="empty-desc">Pick a deal date above and hit “Load from database”</div>
+    </div>
+  </div>
+
+  <div class="trust-bar">
+    <div class="trust-item"><i class="ti ti-lock" aria-hidden="true"></i>Runs entirely on your machine</div>
+    <div class="trust-item"><i class="ti ti-database" aria-hidden="true"></i>Local SQLite history</div>
+    <div class="trust-item"><i class="ti ti-cloud-download" aria-hidden="true"></i>Direct from CCIL F-TRAC</div>
+    <div class="trust-item"><i class="ti ti-lock" aria-hidden="true"></i>No third-party upload</div>
+  </div>
+
+  <div class="credit">
+    Made By
+    <a href="https://www.linkedin.com/company/finqrate" target="_blank" rel="noopener noreferrer"
+       title="Finqrate on LinkedIn"><i class="ti ti-brand-linkedin li"></i><b>Finqrate</b></a>
+    for
+    <a href="https://www.linkedin.com/in/swayamjitdalai/" target="_blank" rel="noopener noreferrer"
+       title="Swayamjeet Dalai on LinkedIn"><i class="ti ti-brand-linkedin li"></i>Swayamjeet Dalai</a>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const state={cd:[],cp:[]};
+const tenors={cd:[],cp:[]};
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let serverMode=true;   // false once the user falls back to a manual upload
+
+/* ─────────── data access ───────────
+   One entry point for every read. On the local server it hits the Flask API;
+   on the published static build the same paths are answered out of the baked
+   bundle in data.js, so both deployments run identical UI code. */
+const STATIC=(typeof window!=='undefined'&&window.__STATIC_DATA__)||null;
+const isStatic=()=>!!STATIC;
+
+function staticLookup(path){
+  const [route,query]=path.split('?');
+  const parts=route.replace(/^\/api\//,'').split('/');
+  if(parts[0]==='dates')  return {trade_dates:STATIC.dates,report_dates:Object.keys(STATIC.reports||{})};
+  if(parts[0]==='status') return {trade_dates:STATIC.dates,latest_trade_date:STATIC.dates[0],generated:STATIC.generated};
+  if(parts[0]==='cdcp')   return STATIC.cdcp[parts[1]]||null;
+  if(parts[0]==='series'){
+    const inst=parts[1].toUpperCase(), days=+((query||'').match(/days=(\d+)/)||[])[1]||30;
+    const full=STATIC.series[inst];
+    if(!full) return null;
+    const keep=full.dates.slice(-days);
+    const cut=full.dates.length-keep.length;
+    return Object.assign({},full,{dates:keep,
+      tenors:Object.fromEntries(Object.entries(full.tenors).map(([k,v])=>[k,v.slice(cut)])),
+      volume:full.volume.slice(cut)});
+  }
+  if(parts[0]==='report') return STATIC.reports[parts[1]]||null;
+  return null;
+}
+
+async function apiGet(path){
+  if(isStatic()){
+    const v=staticLookup(path);
+    if(v==null) throw new Error('not in published data');
+    return v;
+  }
+  const r=await fetch(path,{cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+
+const now=new Date();
+document.getElementById('today-date').textContent=String(now.getDate()).padStart(2,'0')+' '+MONTHS[now.getMonth()]+' '+now.getFullYear();
+
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const setStatus=(txt,cls='',icon='ti-info-circle')=>{
+  const el=document.getElementById('fetchStatus');
+  el.className='fetch-status '+cls;
+  el.innerHTML=`<i class="ti ${icon}"></i> ${esc(txt)}`;
+};
+
+/* ─────────── ISO date helpers (server path) ─────────── */
+function isoToObj(s){
+  if(!s)return null;
+  const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m?{y:+m[1],m:+m[2],d:+m[3]}:null;
+}
+function fmtDate(o){if(!o)return'';return String(o.d).padStart(2,'0')+'-'+MONTHS[o.m-1]+'-'+String(o.y).slice(-2);}
+function dateTs(o){return o?o.y*10000+o.m*100+o.d:0;}
+function dateKey(o){return o?`${o.y}-${String(o.m).padStart(2,'0')}-${String(o.d).padStart(2,'0')}`:''}
+
+/* ─────────── server load ─────────── */
+async function loadFromServer(){
+  const date=document.getElementById('dateSel').value;
+  if(!date){setStatus('Pick a deal date first.','err','ti-alert-triangle');return;}
+  setStatus(isStatic()?'Loading '+date+'…':'Loading '+date+' from the local database…','','ti-loader-2');
+  try{
+    const data=await apiGet(`/api/cdcp/${date}`);
+    let total=0;
+    ['cd','cp'].forEach(type=>{
+      const block=data[type]||{};
+      state[type]=(block.rows||[]).map(r=>({
+        name:r.issuer, isin:r.isin,
+        maturity:isoToObj(r.maturity_date), dealDate:isoToObj(r.deal_date),
+        yield:r.yield_pct, qtm:r.amount_cr
+      }));
+      tenors[type]=block.tenors||[];
+      total+=state[type].length;
+      const badge=document.getElementById('badge-'+type);
+      if(state[type].length){
+        badge.style.display='';
+        badge.textContent=`${block.raw_trade_count} trades → ${state[type].length} rows`;
+        document.getElementById('sub-'+type).textContent=date+' (from database)';
+        document.getElementById('dz-'+type).classList.add('loaded');
+        renderStats(type,block);
+        renderTenors(type);
+        renderTable(type);
+      }else{
+        resetPanel(type);
+      }
+    });
+    if(total){
+      document.getElementById('tabs').style.display='flex';
+      showPanel(state.cd.length?'cd':'cp');
+      setStatus(`Loaded ${total} aggregated rows for ${date}.`+(data.previous_date?` Day-on-day vs ${data.previous_date}.`:''),'ok','ti-circle-check');
+      refreshCharts();
+    }else{
+      document.getElementById('tabs').style.display='none';
+      setStatus(`No trades stored for ${date}. Try “Fetch latest from F-TRAC”.`,'err','ti-alert-triangle');
+    }
+    serverMode=true;
+  }catch(e){
+    if(isStatic()){
+      setStatus(`No data published for ${date}. Pick a highlighted date.`,'err','ti-calendar-off');
+    }else{
+      setStatus('Could not reach the local server — use manual upload below. ('+e.message+')','err','ti-plug-connected-x');
+      document.getElementById('uploadSection').classList.remove('collapsed');
+    }
+  }
+}
+
+async function fetchFromFtrac(){
+  const date=document.getElementById('dateSel').value||new Date().toISOString().slice(0,10);
+  const btn=document.getElementById('fetchBtn');
+  btn.disabled=true;
+  setStatus('Downloading from CCIL F-TRAC — this takes a few seconds…','','ti-loader-2');
+  try{
+    const res=await fetch('/api/ingest',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({date,days:1})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||('HTTP '+res.status));
+    setStatus(`Fetched ${data.trade_rows} trade rows.`,'ok','ti-circle-check');
+    await refreshDates();
+    await loadFromServer();
+  }catch(e){
+    setStatus('Fetch failed: '+e.message,'err','ti-alert-triangle');
+  }finally{ btn.disabled=false; }
+}
+
+async function refreshDates(){
+  try{
+    const {trade_dates}=await apiGet('/api/dates');
+    const sel=document.getElementById('dateSel');
+    if(trade_dates&&trade_dates.length){
+      sel.max=trade_dates[0];
+      sel.min=trade_dates[trade_dates.length-1];
+      if(!sel.value)sel.value=trade_dates[0];
+      return trade_dates;
+    }
+  }catch(e){ /* offline — manual upload still works */ }
+  return [];
+}
+
+/* ─────────── manual upload path (fallback) ─────────── */
+function parseExcelDate(val){
+  if(typeof val==='number'){const p=XLSX.SSF.parse_date_code(val);return p?{y:p.y,m:p.m,d:p.d}:null;}
+  if(val instanceof Date)return{y:val.getUTCFullYear(),m:val.getUTCMonth()+1,d:val.getUTCDate()};
+  if(typeof val==='string'&&val){
+    const monMap={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+    const m=val.match(/^(\d{1,2})[-\/]([A-Za-z]{3})[-\/](\d{2,4})$/);
+    if(m){const yr=parseInt(m[3]);return{y:yr<100?2000+yr:yr,m:monMap[m[2].toLowerCase()]||1,d:parseInt(m[1])};}
+    const dt=new Date(val);if(!isNaN(dt))return{y:dt.getFullYear(),m:dt.getMonth()+1,d:dt.getDate()};
+  }
+  return null;
+}
+
+// One extractor for both instruments — the description carries its own tag.
+function extractIssuer(desc){
+  let s=String(desc||'').trim().toUpperCase();
+  s=s.replace(/\s+\d+D\s+(?:CP|CD)\s+\d{1,2}[A-Z]{3}\d{2,4}\s*$/i,'');
+  s=s.replace(/\s+(?:CP|CD)\s+\d{1,2}[A-Z]{3}\d{2,4}\s*$/i,'');
+  s=s.replace(/^THE\s+/i,'');
+  s=s.replace(/\s+PRIVATE\s+LIMITED$/i,'').replace(/\s+PVT\.?\s+LTD\.?$/i,'');
+  s=s.replace(/\s+LIMITED$/i,'').replace(/\s+LTD\.?$/i,'');
+  return s.replace(/\s+/g,' ').trim();
+}
+
+const TENOR_BUCKETS=[[0,45,'1 Month'],[46,75,'2 Months'],[76,135,'3 Months'],
+  [136,225,'6 Months'],[226,300,'9 Months'],[301,400,'12 Months'],[401,1e5,'Above 1 Year']];
+function bucketFor(days){
+  if(days==null||days<0)return null;
+  for(const [lo,hi,label] of TENOR_BUCKETS) if(days>=lo&&days<=hi) return label;
+  return null;
+}
+function daysBetween(a,b){
+  if(!a||!b)return null;
+  return Math.round((Date.UTC(b.y,b.m-1,b.d)-Date.UTC(a.y,a.m-1,a.d))/864e5);
+}
+function computeTenors(rows){
+  const buckets={};
+  rows.forEach(r=>{
+    const label=bucketFor(daysBetween(r.dealDate,r.maturity));
+    if(!label||r.yield==null)return;
+    const b=buckets[label]||(buckets[label]={tenor_label:label,rates:[],volume_cr:0,trade_count:0,issuers:new Set()});
+    b.rates.push([r.yield,r.qtm]); b.volume_cr+=r.qtm; b.trade_count++; b.issuers.add(r.name);
+  });
+  const order=Object.fromEntries(TENOR_BUCKETS.map((b,i)=>[b[2],i]));
+  return Object.values(buckets).map(b=>{
+    const rates=b.rates.map(x=>x[0]);
+    const w=b.rates.reduce((s,[,q])=>s+q,0);
+    return{tenor_label:b.tenor_label,low:Math.min(...rates),high:Math.max(...rates),
+      weighted_avg:w?b.rates.reduce((s,[v,q])=>s+v*q,0)/w:rates.reduce((s,v)=>s+v,0)/rates.length,
+      volume_cr:b.volume_cr,trade_count:b.trade_count,issuer_count:b.issuers.size};
+  }).sort((a,b)=>order[a.tenor_label]-order[b.tenor_label]);
+}
+
+function detectCols(row){
+  const keys=Object.keys(row);
+  const find=(...pats)=>{
+    for(const p of pats){
+      const k=keys.find(k=>k.toLowerCase().includes(p.toLowerCase()));
+      if(k)return k;
+    }
+    return null;
+  };
+  return{
+    isin:    find('isin description','description','issuer name','issuer'),
+    maturity:find('maturity'),
+    deal:    find('deal date','deal'),
+    tradeAmt:find('trade amount','amount (rs)','trade amt'),
+    qtm:     find('qtm','quantum'),
+    yield:   find('traded yield','yield','rate')
+  };
+}
+
+function processFile(file,type){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:false});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const raw=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!raw.length){setMsg(type,'No data found.');return;}
+
+      const cols=detectCols(raw[0]);
+      if(!cols.isin||!cols.maturity||!cols.deal||!cols.yield){
+        setMsg(type,'Could not detect required columns. Found: '+Object.keys(raw[0]).join(', '));return;
+      }
+
+      const rows=raw.map(r=>{
+        const tradeAmt=parseFloat(r[cols.tradeAmt])||0;
+        let qtm=0;
+        if(cols.qtm&&typeof r[cols.qtm]==='number'&&r[cols.qtm]>0){qtm=r[cols.qtm];}
+        else{qtm=tradeAmt/1e7;}
+        const rawYield=parseFloat(r[cols.yield])||0;
+        return{
+          name:extractIssuer(r[cols.isin]),
+          maturity:parseExcelDate(r[cols.maturity]),
+          dealDate:parseExcelDate(r[cols.deal]),
+          yield:Math.round(rawYield*100)/100,
+          qtm
+        };
+      }).filter(r=>r.name&&r.name.length>1&&r.qtm>0&&r.maturity);
+
+      const grouped={};
+      rows.forEach(r=>{
+        const key=`${r.name}||${dateKey(r.maturity)}||${r.yield.toFixed(2)}`;
+        if(!grouped[key])grouped[key]={...r,qtm:0};
+        grouped[key].qtm+=r.qtm;
+      });
+      state[type]=Object.values(grouped);
+      tenors[type]=computeTenors(state[type]);
+      serverMode=false;
+
+      const dz=document.getElementById('dz-'+type);
+      dz.classList.add('loaded');
+      document.getElementById('badge-'+type).style.display='';
+      document.getElementById('badge-'+type).textContent=`${rows.length} trades → ${state[type].length} rows`;
+      document.getElementById('sub-'+type).textContent=file.name;
+      document.getElementById('tabs').style.display='flex';
+      renderStats(type);
+      renderTenors(type);
+      renderTable(type);
+      showPanel(type);
+      setStatus('Loaded from uploaded file — not saved to the database.','','ti-file-upload');
+    }catch(err){setMsg(type,'Error: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ─────────── rendering ─────────── */
+function resetPanel(type){
+  state[type]=[];tenors[type]=[];
+  ['stats-','tenor-','tb-','tw-'].forEach(p=>document.getElementById(p+type).style.display='none');
+  document.getElementById('empty-'+type).style.display='';
+  document.getElementById('msg-'+type).textContent='';
+}
+
+function renderStats(type,block){
+  const rows=state[type];
+  const totalQTM=block?block.total_volume_cr:rows.reduce((s,r)=>s+r.qtm,0);
+  const names=new Set(rows.map(r=>r.name)).size;
+  const trades=block?block.raw_trade_count:rows.length;
+  document.getElementById('stats-'+type).style.display='grid';
+  document.getElementById('stats-'+type).innerHTML=`
+    <div class="stat"><div class="stat-label">Unique rows</div><div class="stat-val">${rows.length}</div></div>
+    <div class="stat"><div class="stat-label">Issuers</div><div class="stat-val">${names}</div></div>
+    <div class="stat"><div class="stat-label">Total QTM (Crs)</div><div class="stat-val">${totalQTM.toLocaleString('en-IN',{maximumFractionDigits:0})}</div></div>
+    <div class="stat"><div class="stat-label">Raw trades</div><div class="stat-val">${trades}</div></div>`;
+  document.getElementById('tb-'+type).style.display='flex';
+  document.getElementById('tw-'+type).style.display='';
+  document.getElementById('empty-'+type).style.display='none';
+}
+
+function renderTenors(type){
+  const wrap=document.getElementById('tenor-'+type);
+  const rows=tenors[type]||[];
+  if(!rows.length){wrap.style.display='none';return;}
+  wrap.style.display='';
+  const cards=rows.map(t=>{
+    let chg='';
+    if(t.change_bps!=null){
+      const cls=t.change_bps>0.05?'up':t.change_bps<-0.05?'down':'flat';
+      const arrow=t.change_bps>0.05?'▲':t.change_bps<-0.05?'▼':'●';
+      chg=`<span class="chg ${cls}">${arrow} ${Math.abs(t.change_bps).toFixed(1)} bps</span>`;
+    }
+    return `<div class="tenor-card">
+      <div class="tenor-name">${esc(t.tenor_label)}</div>
+      <div class="tenor-range">${t.low.toFixed(2)} – ${t.high.toFixed(2)}</div>
+      <div class="tenor-meta">wtd avg ${t.weighted_avg==null?'–':t.weighted_avg.toFixed(4)} ${chg}</div>
+      <div class="tenor-meta">${t.volume_cr.toLocaleString('en-IN',{maximumFractionDigits:0})} Cr · ${t.trade_count} trades · ${t.issuer_count} issuers</div>
+    </div>`;}).join('');
+  wrap.innerHTML=`<div class="tenor-head"><i class="ti ti-chart-histogram"></i>${type.toUpperCase()} yield range by tenor
+      <span class="auto-pill">AUTO-DERIVED</span></div><div class="tenor-grid">${cards}</div>`;
+}
+
+function getSorted(type){
+  const q=document.getElementById('search-'+type).value.toLowerCase();
+  const s=document.getElementById('sort-'+type).value;
+  let rows=state[type].filter(r=>!q||r.name.toLowerCase().includes(q));
+  if(s==='default')rows.sort((a,b)=>dateTs(a.maturity)-dateTs(b.maturity)||a.name.localeCompare(b.name)||a.yield-b.yield);
+  else if(s==='name')rows.sort((a,b)=>a.name.localeCompare(b.name)||dateTs(a.maturity)-dateTs(b.maturity)||a.yield-b.yield);
+  else if(s==='yield')rows.sort((a,b)=>a.yield-b.yield);
+  else if(s==='qtm')rows.sort((a,b)=>b.qtm-a.qtm);
+  return rows;
+}
+
+function renderTable(type){
+  const rows=getSorted(type);
+  const instr=type==='cd'?'CD':'CP';
+  document.getElementById('tbody-'+type).innerHTML=rows.map(r=>`<tr>
+    <td>${fmtDate(r.dealDate)}</td>
+    <td class="name">${esc(r.name)}</td>
+    <td>${instr}</td>
+    <td>${fmtDate(r.maturity)}</td>
+    <td>${r.yield.toFixed(2)}</td>
+    <td>${r.qtm.toLocaleString('en-IN',{maximumFractionDigits:2})}</td>
+  </tr>`).join('');
+  setMsg(type,rows.length===state[type].length?`Showing ${rows.length} rows`:`Showing ${rows.length} of ${state[type].length} rows`);
+}
+
+function setMsg(type,txt){document.getElementById('msg-'+type).innerHTML='<i class="ti ti-info-circle" aria-hidden="true"></i> '+esc(txt);}
+
+/* ─────────── export ─────────── */
+async function downloadExcel(type){
+  const instr=type==='cd'?'CD':'CP';
+  const date=document.getElementById('dateSel').value;
+  // Server-side render keeps the header fill and borders; the SheetJS
+  // community build silently drops cell styles. No server on the published
+  // build, so it falls through to the client-side writer below.
+  if(serverMode&&date&&!isStatic()){
+    try{
+      const res=await fetch(`/api/cdcp/${date}/export/${instr}`);
+      if(res.ok){
+        const blob=await res.blob();
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download=`${instr}_Secondary_Summary_${date}.xlsx`;
+        a.click(); URL.revokeObjectURL(a.href);
+        return;
+      }
+    }catch(e){ /* fall through to the client-side writer */ }
+  }
+  const rows=getSorted(type);
+  const headers=['DEAL DATE','ISSUER','INSTRUMENT','MATURITY','RATE (%)','QTM (Crs)'];
+  const data=[headers,...rows.map(r=>[fmtDate(r.dealDate),r.name,instr,fmtDate(r.maturity),
+    parseFloat(r.yield.toFixed(2)),parseFloat(r.qtm.toFixed(2))])];
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:14},{wch:type==='cd'?30:36},{wch:12},{wch:14},{wch:11},{wch:13}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,instr+' Secondary');
+  XLSX.writeFile(wb,`${instr}_Secondary_Summary.xlsx`);
+}
+
+/* ─────────── charts ───────────
+   Dependency-free inline SVG. Categorical slots 1-4 in fixed order, one per
+   tenor, so changing the trend window never repaints a series. */
+const SERIES_COLORS=['#2a78d6','#eb6834','#1baf7a','#eda100'];
+const INK={grid:'#E1E0D9',axis:'#C3C2B7',muted:'#898781',text:'#0F172A'};
+const chartState={days:30,view:'chart',data:{cd:null,cp:null}};
+
+const tip=(()=>{const d=document.createElement('div');d.className='chart-tip';document.body.appendChild(d);return d;})();
+function showTip(html,x,y){
+  tip.innerHTML=html; tip.classList.add('on');
+  const r=tip.getBoundingClientRect();
+  let left=x+14, top=y-r.height/2;
+  if(left+r.width>window.innerWidth-8) left=x-r.width-14;
+  tip.style.left=Math.max(8,left)+'px';
+  tip.style.top=Math.min(window.innerHeight-r.height-8,Math.max(8,top))+'px';
+}
+const hideTip=()=>tip.classList.remove('on');
+
+function niceTicks(min,max,count){
+  if(min===max){min-=0.05;max+=0.05;}
+  const span=max-min, raw=span/count, mag=Math.pow(10,Math.floor(Math.log10(raw)));
+  const step=[1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=raw)||10*mag;
+  const lo=Math.floor(min/step)*step, hi=Math.ceil(max/step)*step;
+  const out=[];
+  for(let v=lo;v<=hi+step/1e6;v+=step) out.push(Math.round(v*1e6)/1e6);
+  return out;
+}
+const shortDate=iso=>{const o=isoToObj(iso);return o?String(o.d).padStart(2,'0')+' '+MONTHS[o.m-1]:iso;};
+
+/* Multi-series line chart with crosshair tooltip and direct end labels. */
+function lineChart(host,{title,sub,dates,series,unit='%',digits=2,height=250}){
+  const pts=series.filter(s=>s.values.some(v=>v!=null));
+  if(!dates.length||!pts.length){
+    host.innerHTML=`<div class="chart-head"><div><div class="chart-title">${esc(title)}</div></div></div>
+      <div class="chart-empty">Not enough history yet — run a backfill to build the series.</div>`;
+    return;
+  }
+  const W=760, H=height, m={t:12,r:64,b:30,l:44};
+  const iw=W-m.l-m.r, ih=H-m.t-m.b;
+  const all=pts.flatMap(s=>s.values).filter(v=>v!=null);
+  const ticks=niceTicks(Math.min(...all),Math.max(...all),4);
+  const y0=ticks[0], y1=ticks[ticks.length-1];
+  const X=i=>m.l+(dates.length===1?iw/2:i*iw/(dates.length-1));
+  const Y=v=>m.t+ih-((v-y0)/(y1-y0))*ih;
+
+  const grid=ticks.map(t=>`<line class="grid" x1="${m.l}" y1="${Y(t).toFixed(1)}" x2="${m.l+iw}" y2="${Y(t).toFixed(1)}"/>
+    <text class="tick" x="${m.l-8}" y="${(Y(t)+3.5).toFixed(1)}" text-anchor="end">${t.toFixed(digits)}</text>`).join('');
+
+  // Label roughly six dates; always the first and last.
+  const every=Math.max(1,Math.ceil(dates.length/6));
+  const xticks=dates.map((d,i)=>(i%every===0||i===dates.length-1)
+    ?`<text class="tick" x="${X(i).toFixed(1)}" y="${H-10}" text-anchor="middle">${esc(shortDate(d))}</text>`:'').join('');
+
+  const paths=pts.map(s=>{
+    let d='',open=false;
+    s.values.forEach((v,i)=>{ if(v==null){open=false;return;}
+      d+=(open?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' '; open=true; });
+    return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round"/>`;
+  }).join('');
+
+  // Direct end labels — mandatory at four series, and the relief for the two
+  // slots that sit under 3:1 against a white surface.
+  const ends=pts.map(s=>{
+    let li=-1; s.values.forEach((v,i)=>{if(v!=null)li=i;});
+    if(li<0)return'';
+    return `<circle cx="${X(li).toFixed(1)}" cy="${Y(s.values[li]).toFixed(1)}" r="3.5" fill="${s.color}"
+        stroke="#fff" stroke-width="2"/>
+      <text class="endlabel" x="${(X(li)+9).toFixed(1)}" y="${(Y(s.values[li])+3.5).toFixed(1)}"
+        fill="${s.color}">${s.values[li].toFixed(digits)}</text>`;
+  }).join('');
+
+  host.innerHTML=`<div class="chart-head"><div>
+      <div class="chart-title">${esc(title)}</div>
+      ${sub?`<div class="chart-sub">${esc(sub)}</div>`:''}
+    </div></div>
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
+      aria-label="${esc(title)}">
+      ${grid}
+      <line class="axis" x1="${m.l}" y1="${m.t+ih}" x2="${m.l+iw}" y2="${m.t+ih}"/>
+      ${xticks}
+      <g class="cross" style="display:none"><line class="crosshair" y1="${m.t}" y2="${m.t+ih}"/></g>
+      ${paths}${ends}
+      <rect class="hit" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}"/>
+    </svg>
+    <div class="legend">${pts.map(s=>
+      `<span class="legend-item"><span class="legend-swatch" style="background:${s.color}"></span>${esc(s.name)}</span>`).join('')}</div>`;
+
+  const svg=host.querySelector('svg'), hit=host.querySelector('.hit'), cross=host.querySelector('.cross');
+  const line=cross.querySelector('line');
+  hit.addEventListener('mousemove',ev=>{
+    const box=svg.getBoundingClientRect();
+    const sx=(ev.clientX-box.left)*(W/box.width);
+    let i=dates.length===1?0:Math.round((sx-m.l)/(iw/(dates.length-1)));
+    i=Math.max(0,Math.min(dates.length-1,i));
+    line.setAttribute('x1',X(i)); line.setAttribute('x2',X(i));
+    cross.style.display='';
+    const rows=pts.map(s=>s.values[i]==null?'':
+      `<div class="t-row"><span class="t-sw" style="background:${s.color}"></span>${esc(s.name)}
+        <span class="t-val">${s.values[i].toFixed(digits)}${unit}</span></div>`).join('');
+    showTip(`<div class="t-date">${esc(shortDate(dates[i]))}</div>${rows||'<div class="t-row">No trades</div>'}`,
+      ev.clientX,ev.clientY);
+  });
+  hit.addEventListener('mouseleave',()=>{cross.style.display='none';hideTip();});
+}
+
+/* Single-series column chart — sequential, one hue. */
+function barChart(host,{title,sub,dates,values,unit='',height=210}){
+  if(!dates.length){
+    host.innerHTML=`<div class="chart-head"><div><div class="chart-title">${esc(title)}</div></div></div>
+      <div class="chart-empty">No data for this window.</div>`;
+    return;
+  }
+  const W=380,H=height,m={t:12,r:10,b:30,l:52};
+  const iw=W-m.l-m.r, ih=H-m.t-m.b;
+  const ticks=niceTicks(0,Math.max(...values),3);
+  const y1=ticks[ticks.length-1]||1;
+  const Y=v=>m.t+ih-(v/y1)*ih;
+  const slot=iw/dates.length, bw=Math.max(2,Math.min(20,slot-2));  // 2px surface gap
+  const fmt=v=>v>=1000?(v/1000).toFixed(1)+'k':String(Math.round(v));
+
+  const grid=ticks.map(t=>`<line class="grid" x1="${m.l}" y1="${Y(t).toFixed(1)}" x2="${m.l+iw}" y2="${Y(t).toFixed(1)}"/>
+    <text class="tick" x="${m.l-8}" y="${(Y(t)+3.5).toFixed(1)}" text-anchor="end">${fmt(t)}</text>`).join('');
+  const every=Math.max(1,Math.ceil(dates.length/4));
+  const xticks=dates.map((d,i)=>(i%every===0||i===dates.length-1)
+    ?`<text class="tick" x="${(m.l+i*slot+slot/2).toFixed(1)}" y="${H-10}" text-anchor="middle">${esc(shortDate(d))}</text>`:'').join('');
+  const bars=values.map((v,i)=>{
+    const h=Math.max(1,m.t+ih-Y(v));
+    return `<rect x="${(m.l+i*slot+(slot-bw)/2).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}"
+      height="${h.toFixed(1)}" rx="3" fill="#2a78d6"/>`;
+  }).join('');
+  // Hit slots are the full column width, so the target never depends on bar height.
+  const hits=values.map((v,i)=>`<rect class="hit" x="${(m.l+i*slot).toFixed(1)}" y="${m.t}"
+    width="${slot.toFixed(1)}" height="${ih}" data-i="${i}"/>`).join('');
+
+  host.innerHTML=`<div class="chart-head"><div>
+      <div class="chart-title">${esc(title)}</div>
+      ${sub?`<div class="chart-sub">${esc(sub)}</div>`:''}
+    </div></div>
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
+      aria-label="${esc(title)}">
+      ${grid}
+      <line class="axis" x1="${m.l}" y1="${m.t+ih}" x2="${m.l+iw}" y2="${m.t+ih}"/>
+      ${xticks}${bars}${hits}
+    </svg>`;
+  host.querySelectorAll('.hit').forEach(r=>{
+    r.addEventListener('mousemove',ev=>{
+      const i=+r.dataset.i;
+      showTip(`<div class="t-date">${esc(shortDate(dates[i]))}</div>
+        <div class="t-row"><span class="t-sw" style="background:#2a78d6"></span>Volume
+        <span class="t-val">${values[i].toLocaleString('en-IN',{maximumFractionDigits:0})}${unit}</span></div>`,
+        ev.clientX,ev.clientY);
+    });
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+
+/* Term structure: latest curve against the one a week earlier. Two shades of
+   one hue -- this is a before/after of the same measure, not two identities. */
+function curveChart(host,{title,latest,prior}){
+  const pts=(latest&&latest.points)||[];
+  if(!pts.length){
+    host.innerHTML=`<div class="chart-head"><div><div class="chart-title">${esc(title)}</div></div></div>
+      <div class="chart-empty">No curve for this date.</div>`;
+    return;
+  }
+  const labels=pts.map(p=>p.tenor_label);
+  const priorMap=Object.fromEntries(((prior&&prior.points)||[]).map(p=>[p.tenor_label,p.wavg]));
+  const series=[
+    {name:prior&&prior.date?'Week earlier ('+shortDate(prior.date)+')':'Week earlier',
+     color:'#9ec5f4', values:labels.map(l=>priorMap[l]??null)},
+    {name:latest.date?'Latest ('+shortDate(latest.date)+')':'Latest',
+     color:'#2a78d6', values:pts.map(p=>p.wavg)},
+  ].filter(s=>s.values.some(v=>v!=null));
+
+  const W=380,H=210,m={t:12,r:16,b:34,l:44};
+  const iw=W-m.l-m.r, ih=H-m.t-m.b;
+  const all=series.flatMap(s=>s.values).filter(v=>v!=null);
+  const ticks=niceTicks(Math.min(...all),Math.max(...all),4);
+  const y0=ticks[0],y1=ticks[ticks.length-1];
+  const X=i=>m.l+(labels.length===1?iw/2:i*iw/(labels.length-1));
+  const Y=v=>m.t+ih-((v-y0)/(y1-y0))*ih;
+
+  const grid=ticks.map(t=>`<line class="grid" x1="${m.l}" y1="${Y(t).toFixed(1)}" x2="${m.l+iw}" y2="${Y(t).toFixed(1)}"/>
+    <text class="tick" x="${m.l-8}" y="${(Y(t)+3.5).toFixed(1)}" text-anchor="end">${t.toFixed(2)}</text>`).join('');
+  const xticks=labels.map((l,i)=>`<text class="tick" x="${X(i).toFixed(1)}" y="${H-12}" text-anchor="middle">${esc(l.replace(' Month','M').replace('s',''))}</text>`).join('');
+  const draw=series.map(s=>{
+    let d='',open=false;
+    s.values.forEach((v,i)=>{if(v==null){open=false;return;}
+      d+=(open?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' ';open=true;});
+    const dots=s.values.map((v,i)=>v==null?'':
+      `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4" fill="${s.color}" stroke="#fff" stroke-width="2"/>`).join('');
+    return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
+  }).join('');
+
+  host.innerHTML=`<div class="chart-head"><div><div class="chart-title">${esc(title)}</div>
+      <div class="chart-sub">Weighted-average yield by tenor</div></div></div>
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
+      aria-label="${esc(title)}">
+      ${grid}<line class="axis" x1="${m.l}" y1="${m.t+ih}" x2="${m.l+iw}" y2="${m.t+ih}"/>
+      ${xticks}${draw}
+      ${labels.map((l,i)=>`<rect class="hit" x="${(X(i)-iw/labels.length/2).toFixed(1)}" y="${m.t}"
+        width="${(iw/labels.length).toFixed(1)}" height="${ih}" data-i="${i}"/>`).join('')}
+    </svg>
+    <div class="legend">${series.map(s=>
+      `<span class="legend-item"><span class="legend-swatch" style="background:${s.color}"></span>${esc(s.name)}</span>`).join('')}</div>`;
+
+  host.querySelectorAll('.hit').forEach(r=>{
+    r.addEventListener('mousemove',ev=>{
+      const i=+r.dataset.i;
+      const rows=series.map(s=>s.values[i]==null?'':
+        `<div class="t-row"><span class="t-sw" style="background:${s.color}"></span>${esc(s.name)}
+          <span class="t-val">${s.values[i].toFixed(4)}%</span></div>`).join('');
+      showTip(`<div class="t-date">${esc(labels[i])}</div>${rows}`,ev.clientX,ev.clientY);
+    });
+    r.addEventListener('mouseleave',hideTip);
+  });
+}
+
+/* Table twin — every plotted value readable without hovering. */
+function trendTable(host,{title,dates,series,digits=2}){
+  const head=`<tr><th>Date</th>${series.map(s=>`<th>${esc(s.name)}</th>`).join('')}</tr>`;
+  const body=dates.map((d,i)=>`<tr><td>${esc(shortDate(d))}</td>${
+    series.map(s=>`<td>${s.values[i]==null?'–':s.values[i].toFixed(digits)}</td>`).join('')}</tr>`).reverse().join('');
+  host.innerHTML=`<div class="chart-head"><div><div class="chart-title">${esc(title)}</div>
+    <div class="chart-sub">Weighted-average yield (%) by tenor</div></div></div>
+    <div style="max-height:340px;overflow:auto"><table class="chart-table">${head}${body}</table></div>`;
+}
+
+async function loadSeries(type){
+  chartState.data[type]=await apiGet(`/api/series/${type.toUpperCase()}?days=${chartState.days}`);
+  return chartState.data[type];
+}
+
+function renderCharts(type){
+  const d=chartState.data[type];
+  const grid=document.getElementById('charts-'+type);
+  if(!d||!d.dates.length){ grid.style.display='none'; return; }
+  grid.style.display='grid';
+  document.getElementById('chartControls').style.display='flex';
+
+  const label=type.toUpperCase();
+  const series=d.tenor_order.map((t,i)=>({
+    name:t, color:SERIES_COLORS[i%SERIES_COLORS.length],
+    values:d.tenors[t].map(p=>p.wavg)
+  }));
+
+  if(chartState.view==='table'){
+    trendTable(document.getElementById('trend-'+type),
+      {title:`${label} yield trend by tenor`,dates:d.dates,series,digits:4});
+  }else{
+    lineChart(document.getElementById('trend-'+type),{
+      title:`${label} yield trend by tenor`,
+      sub:`Volume-weighted average, ${d.dates.length} trading days to ${shortDate(d.dates[d.dates.length-1])}`,
+      dates:d.dates, series, digits:2, height:250});
+  }
+  curveChart(document.getElementById('curve-'+type),
+    {title:`${label} term structure`,latest:d.term_structure.latest,prior:d.term_structure.prior});
+  barChart(document.getElementById('vol-'+type),{
+    title:`${label} traded volume`, sub:'Crore, per trading day',
+    dates:d.volume.map(v=>v.date), values:d.volume.map(v=>v.volume_cr), unit:' Cr'});
+}
+
+async function refreshCharts(){
+  const status=document.getElementById('chartStatus');
+  status.textContent='Loading trends…';
+  try{
+    await Promise.all(['cd','cp'].map(loadSeries));
+    ['cd','cp'].forEach(renderCharts);
+    const n=(chartState.data.cd&&chartState.data.cd.dates.length)||0;
+    status.textContent=`${n} trading day${n===1?'':'s'} of history`;
+  }catch(e){
+    status.textContent='Trend data unavailable ('+e.message+')';
+  }
+}
+
+document.getElementById('rangeSeg').addEventListener('click',ev=>{
+  const b=ev.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#rangeSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  chartState.days=+b.dataset.days;
+  refreshCharts();
+});
+document.getElementById('viewSeg').addEventListener('click',ev=>{
+  const b=ev.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#viewSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  chartState.view=b.dataset.view;
+  ['cd','cp'].forEach(renderCharts);
+});
+
+function showPanel(type){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===type));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+type));
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>showPanel(t.dataset.tab)));
+
+document.getElementById('uploadToggle').addEventListener('click',()=>
+  document.getElementById('uploadSection').classList.toggle('collapsed'));
+document.getElementById('loadBtn').addEventListener('click',loadFromServer);
+document.getElementById('fetchBtn').addEventListener('click',fetchFromFtrac);
+document.getElementById('dateSel').addEventListener('change',loadFromServer);
+
+['cd','cp'].forEach(type=>{
+  const dz=document.getElementById('dz-'+type);
+  const fi=document.getElementById('fi-'+type);
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0],type);});
+  fi.addEventListener('change',()=>{if(fi.files[0])processFile(fi.files[0],type);});
+  document.getElementById('search-'+type).addEventListener('input',()=>renderTable(type));
+  document.getElementById('sort-'+type).addEventListener('change',()=>renderTable(type));
+  document.getElementById('dl-'+type).addEventListener('click',()=>downloadExcel(type));
+});
+
+/* ─────────── boot ─────────── */
+(async()=>{
+  if(isStatic()){
+    // Published build: nothing here can fetch or upload, so drop the controls
+    // that imply it can rather than leaving buttons that quietly do nothing.
+    ['fetchBtn','uploadSection'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.style.display='none';
+    });
+    const load=document.getElementById('loadBtn');
+    if(load) load.innerHTML='<i class="ti ti-calendar-search"></i> Show this date';
+  }
+  const dates=await refreshDates();
+  if(dates.length){
+    setStatus(isStatic()
+      ? `${dates.length} trading days published · latest ${dates[0]}`
+      : `Database has ${dates.length} deal date(s), latest ${dates[0]}.`,'ok','ti-database');
+    await loadFromServer();
+  }else{
+    document.getElementById('dateSel').value=new Date().toISOString().slice(0,10);
+    setStatus('No data stored yet — hit “Fetch latest from F-TRAC”.','','ti-cloud-download');
+    document.getElementById('uploadSection').classList.remove('collapsed');
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# Local database and raw downloads stay off GitHub. The published site in
+# public/ is generated from them and is the only thing Vercel needs.
+data/market.db
+data/market.db-wal
+data/market.db-shm
+data/raw/
+data/ingest.log
+data/removed_test_report_*.json
+
+# Legacy store, already migrated into data/market.db
+reports.db
+
+# Original manual downloads, no longer read by anything
+*.xls
+chart_snapshot.html
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+.vercel/

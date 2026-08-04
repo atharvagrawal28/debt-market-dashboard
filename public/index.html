@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Indian Debt &amp; Money Market</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;color:#0F172A;background:#fff}
+.topnav{border-bottom:1px solid #E2E8F0;background:#fff;position:sticky;top:0;z-index:40}
+.topnav-in{max-width:1180px;margin:0 auto;padding:0 1rem;display:flex;align-items:center;gap:22px;height:54px}
+.brand{font-weight:800;font-size:15px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.brand i{color:#1D4ED8;font-size:19px}
+.navlink{font-size:13.5px;font-weight:700;color:#64748B;text-decoration:none;height:54px;
+  display:inline-flex;align-items:center;border-bottom:3px solid transparent}
+.navlink:hover{color:#1D4ED8}
+.disclaimer{max-width:1180px;margin:1.25rem auto 0;padding:0 1rem}
+.disclaimer-in{background:#F8FAFC;border:1px solid #E2E8F0;border-left:3px solid #94A3B8;
+  border-radius:10px;padding:.7rem .95rem;font-size:11.5px;color:#64748B;line-height:1.6}
+.credit{text-align:center;font-size:12.5px;color:#94A3B8;font-weight:500;letter-spacing:.04em;padding:26px 1rem 30px}
+.credit b{color:#1D4ED8;font-weight:800}
+.credit a{color:inherit;text-decoration:none}
+.credit a:hover{color:#1D4ED8}
+</style></head><body>
+<div class="topnav"><div class="topnav-in">
+  <span class="brand"><i class="ti ti-chart-candle"></i>Debt Market</span>
+  <a class="navlink" href="index.html" style="color:#1D4ED8;border-bottom-color:#1D4ED8">Overview</a><a class="navlink" href="cdcp.html">CD / CP Secondary</a><a class="navlink" href="report.html">Closing Report</a>
+</div></div>
+<div class="disclaimer"><div class="disclaimer-in">Source data: CCIL F-TRAC trade reports and CCIL public market pages, retrieved from publicly accessible pages. Reproduced for information only, not for commercial redistribution. Figures are as published by CCIL and may be revised; no warranty is given as to accuracy or completeness. Nothing here is investment advice.</div></div>
+
+<div class="wrap">
+  <h1>Indian Debt &amp; Money Market</h1>
+  <p class="sub">Certificate of Deposit and Commercial Paper secondary trades, benchmark
+     curves and money market rates — collected automatically each evening from CCIL
+     F-TRAC and CCIL's public market pages, then aggregated by issuer, tenor and yield.</p>
+
+  <div class="kpirow">
+    <div class="kpi"><div class="kpi-l">Trading days</div><div class="kpi-v">22</div></div>
+    <div class="kpi"><div class="kpi-l">Trades processed</div><div class="kpi-v">4,398</div></div>
+    <div class="kpi"><div class="kpi-l">Issuers tracked</div><div class="kpi-v">204</div></div>
+    <div class="kpi"><div class="kpi-l">Latest deal date</div><div class="kpi-v">2026-08-04</div></div>
+  </div>
+
+  <h3>CD yield range by tenor</h3><div class="tcgrid"><div class="tc"><div class="tc-n">1 Month</div><div class="tc-r">5.00 – 6.35</div><div class="tc-m">wtd avg 6.0914 <span class="chg down">▼ 17.9 bps</span></div></div><div class="tc"><div class="tc-n">3 Months</div><div class="tc-r">6.70 – 6.83</div><div class="tc-m">wtd avg 6.7788 <span class="chg up">▲ 4.2 bps</span></div></div><div class="tc"><div class="tc-n">6 Months</div><div class="tc-r">6.80 – 7.00</div><div class="tc-m">wtd avg 6.8872 <span class="chg down">▼ 2.1 bps</span></div></div><div class="tc"><div class="tc-n">9 Months</div><div class="tc-r">6.82 – 6.93</div><div class="tc-m">wtd avg 6.8861 <span class="chg down">▼ 7.5 bps</span></div></div><div class="tc"><div class="tc-n">12 Months</div><div class="tc-r">7.00 – 7.15</div><div class="tc-m">wtd avg 7.0364 <span class="chg down">▼ 1.3 bps</span></div></div></div>
+  <h3>CP yield range by tenor</h3><div class="tcgrid"><div class="tc"><div class="tc-n">1 Month</div><div class="tc-r">5.00 – 7.20</div><div class="tc-m">wtd avg 6.1039 <span class="chg up">▲ 73.5 bps</span></div></div><div class="tc"><div class="tc-n">2 Months</div><div class="tc-r">6.31 – 7.90</div><div class="tc-m">wtd avg 6.4200 </div></div><div class="tc"><div class="tc-n">3 Months</div><div class="tc-r">7.44 – 8.20</div><div class="tc-m">wtd avg 7.7441 </div></div><div class="tc"><div class="tc-n">6 Months</div><div class="tc-r">7.00 – 7.50</div><div class="tc-m">wtd avg 7.2554 <span class="chg down">▼ 44.0 bps</span></div></div></div>
+
+  <div class="cards">
+    <a class="card" href="cdcp.html">
+      <div class="card-i"><i class="ti ti-chart-histogram"></i></div>
+      <div class="card-t">CD / CP Secondary Dashboard</div>
+      <div class="card-d">Yield trend by tenor, term structure, traded volume, issuer
+        league table and the full trade-level detail for any published date.</div>
+    </a>
+    <a class="card" href="report.html">
+      <div class="card-i"><i class="ti ti-file-text"></i></div>
+      <div class="card-t">Fixed Income Closing Report</div>
+      <div class="card-d">End-of-day summary: money market, benchmark G-Sec curve,
+        T-Bill, SDL, CD/CP ranges, spreads and USD/INR.</div>
+    </a>
+  </div>
+  <p class="upd">Data as of 2026-08-04 16:42. Refreshed automatically each evening.</p>
+</div>
+<style>
+.wrap{max-width:1180px;margin:0 auto;padding:1.5rem 1rem 1rem}
+h1{font-size:30px;font-weight:800;letter-spacing:-.02em}
+.sub{font-size:14.5px;color:#64748B;margin-top:7px;font-weight:500;max-width:790px;line-height:1.65}
+.kpirow{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:1.6rem 0 .5rem}
+.kpi{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:.95rem 1.15rem;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#1D4ED8,#60A5FA)}
+.kpi:nth-child(2)::before{background:linear-gradient(180deg,#eb6834,#FBBF24)}
+.kpi:nth-child(3)::before{background:linear-gradient(180deg,#1baf7a,#34D399)}
+.kpi-l{font-size:11.5px;color:#64748B;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.kpi-v{font-size:23px;font-weight:800;margin-top:3px;letter-spacing:-.01em}
+h3{font-size:13px;font-weight:800;color:#1D4ED8;text-transform:uppercase;letter-spacing:.05em;margin:1.8rem 0 .7rem}
+.tcgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:10px}
+.tc{border:1px solid #E2E8F0;border-radius:11px;padding:.7rem .85rem;background:#F8FAFC}
+.tc-n{font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em}
+.tc-r{font-size:17px;font-weight:800;margin:3px 0 2px}
+.tc-m{font-size:11.5px;color:#64748B;font-weight:500}
+.chg{font-weight:700}.chg.up{color:#DC2626}.chg.down{color:#059669}.chg.flat{color:#94A3B8}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:2rem 0 1rem}
+.card{display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid #E2E8F0;
+  border-radius:16px;padding:1.35rem 1.5rem;transition:box-shadow .2s,transform .2s,border-color .2s}
+.card:hover{box-shadow:0 14px 32px -12px rgba(29,78,216,.22);transform:translateY(-2px);border-color:#BFDBFE}
+.card-i{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#1D4ED8,#3B82F6);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;margin-bottom:.75rem}
+.card-t{font-size:16px;font-weight:800;letter-spacing:-.01em}
+.card-d{font-size:13px;color:#64748B;margin-top:5px;line-height:1.6;font-weight:500}
+.upd{font-size:12px;color:#94A3B8;margin-top:1.5rem;font-weight:500}
+@media(max-width:820px){.cards{grid-template-columns:1fr}}
+</style>
+<div class="credit">Made By <a href="https://www.linkedin.com/company/finqrate" target="_blank" rel="noopener noreferrer"><b>Finqrate</b></a> for <a href="https://www.linkedin.com/in/swayamjitdalai/" target="_blank" rel="noopener noreferrer">Swayamjeet Dalai</a></div>
+</body></html>
