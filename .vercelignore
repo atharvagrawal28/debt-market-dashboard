@@ -1,0 +1,13 @@
+# The published site is public/ only. The Python backend runs on
+# the desk machine and is not part of the deployment.
+app/
+data/
+*.py
+requirements.txt
+*.bat
+index.html
+cd_cp_secondary_processorhtml.html
+reports.db
+*.xls
+.claude/
+__pycache__/

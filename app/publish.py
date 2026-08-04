@@ -373,9 +373,17 @@ def publish(days=None, verbose=True):
             fh.write(content)
         say(f"  {name:14} {len(content)/1024:,.0f} KB")
 
-    # Long cache on the data file is wrong -- it is replaced every evening.
+    # Explicitly a static deploy. Without this Vercel sees requirements.txt at
+    # the repo root, infers a Python project and tries to build one -- there is
+    # no api/ directory, so the deploy fails confusingly.
+    # Cache-Control on data.js is deliberate: it is replaced every evening, so
+    # the default long cache would serve visitors stale numbers.
     with open(os.path.join(BASE_DIR, "vercel.json"), "w", encoding="utf-8") as fh:
         json.dump({
+            "$schema": "https://openapi.vercel.sh/vercel.json",
+            "framework": None,
+            "buildCommand": None,
+            "installCommand": None,
             "outputDirectory": "public",
             "cleanUrls": True,
             "headers": [{
@@ -383,6 +391,17 @@ def publish(days=None, verbose=True):
                 "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}],
             }],
         }, fh, indent=2)
+
+    # Keep the backend out of the deployment entirely. Only the baked site is
+    # served; the ingest never runs on Vercel.
+    with open(os.path.join(BASE_DIR, ".vercelignore"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join([
+            "# The published site is public/ only. The Python backend runs on",
+            "# the desk machine and is not part of the deployment.",
+            "app/", "data/", "*.py", "requirements.txt", "*.bat",
+            "index.html", "cd_cp_secondary_processorhtml.html",
+            "reports.db", "*.xls", ".claude/", "__pycache__/", "",
+        ]))
 
     say(f"\nWrote {PUBLIC_DIR}")
     conn.close()
