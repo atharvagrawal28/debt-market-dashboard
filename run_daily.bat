@@ -66,9 +66,15 @@ if errorlevel 1 (
     if errorlevel 1 (
         echo [%date% %time%] PUSH FAILED - check credentials >> "data\ingest.log"
     ) else (
-        echo [%date% %time%] pushed - Vercel will redeploy >> "data\ingest.log"
+        echo [%date% %time%] pushed to GitHub >> "data\ingest.log"
     )
 ) else (
-    echo [%date% %time%] no data change - nothing to deploy >> "data\ingest.log"
+    echo [%date% %time%] no data change >> "data\ingest.log"
 )
+
+REM Trigger the deployment explicitly. Vercel's GitHub integration on this
+REM project does not rebuild on push, so pushing alone leaves the live site
+REM stale. The hook always builds the latest commit on main. No-ops with a
+REM note if the hook has not been configured yet.
+"%PY%" -u -m app.deploy >> "data\ingest.log" 2>&1
 exit /b 0

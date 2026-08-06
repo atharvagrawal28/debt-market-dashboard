@@ -7,6 +7,11 @@ data/raw/
 data/ingest.log
 data/removed_test_report_*.json
 
+# The Vercel deploy hook is a secret - anyone holding the URL can trigger
+# deployments, and this repository is public.
+data/deploy_hook.txt
+data/task_backup.xml
+
 # Legacy store, already migrated into data/market.db
 reports.db
 
