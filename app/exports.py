@@ -8,10 +8,10 @@ import html as html_mod
 import io
 
 # Footer line carried on every rendered report, matching the dashboards.
-CREDIT = "Made By Finqrate for Swayamjeet Dalai"
+CREDIT = "Made By Finqrate for Swayamjit Dalai"
 FINQRATE_URL = "https://www.linkedin.com/company/finqrate"
-SWAYAMJEET_URL = "https://www.linkedin.com/in/swayamjitdalai/"
-CREDIT_LINKS = f"Finqrate: {FINQRATE_URL}  |  Swayamjeet Dalai: {SWAYAMJEET_URL}"
+SWAYAMJIT_URL = "https://www.linkedin.com/in/swayamjitdalai/"
+CREDIT_LINKS = f"Finqrate: {FINQRATE_URL}  |  Swayamjit Dalai: {SWAYAMJIT_URL}"
 
 # (heading, key, kind, columns) -- columns are (header, field, format)
 NUM = "{:.4f}"
@@ -171,8 +171,8 @@ def to_html(report):
         "text-align:center;font-size:12px;color:#64748b;letter-spacing:.04em'>"
         f"Made By <a href='{FINQRATE_URL}' style='color:#1d4ed8;font-weight:700;"
         "text-decoration:none'>Finqrate</a> for "
-        f"<a href='{SWAYAMJEET_URL}' style='color:#334155;text-decoration:none'>"
-        "Swayamjeet Dalai</a></div>")
+        f"<a href='{SWAYAMJIT_URL}' style='color:#334155;text-decoration:none'>"
+        "Swayamjit Dalai</a></div>")
     parts.append("</body></html>")
     return "".join(parts)
 
@@ -199,7 +199,7 @@ def to_csv(report):
         w.writerow([commentary])
     w.writerow([])
     w.writerow([CREDIT])
-    w.writerow([FINQRATE_URL, SWAYAMJEET_URL])
+    w.writerow([FINQRATE_URL, SWAYAMJIT_URL])
     return out.getvalue()
 
 

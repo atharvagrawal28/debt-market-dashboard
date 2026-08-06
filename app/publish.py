@@ -24,7 +24,7 @@ PUBLIC_DIR = os.path.join(BASE_DIR, "public")
 DASHBOARD_SRC = os.path.join(BASE_DIR, "cd_cp_secondary_processorhtml.html")
 
 FINQRATE_URL = "https://www.linkedin.com/company/finqrate"
-SWAYAMJEET_URL = "https://www.linkedin.com/in/swayamjitdalai/"
+SWAYAMJIT_URL = "https://www.linkedin.com/in/swayamjitdalai/"
 
 # Shown on every published page. The data is CCIL's; saying so plainly is both
 # correct attribution and the honest framing for a public link.
@@ -39,7 +39,7 @@ ATTRIBUTION = (
 CREDIT_HTML = (
     f'Made By <a href="{FINQRATE_URL}" target="_blank" rel="noopener noreferrer">'
     f'<b>Finqrate</b></a> for '
-    f'<a href="{SWAYAMJEET_URL}" target="_blank" rel="noopener noreferrer">Swayamjeet Dalai</a>'
+    f'<a href="{SWAYAMJIT_URL}" target="_blank" rel="noopener noreferrer">Swayamjit Dalai</a>'
 )
 
 
