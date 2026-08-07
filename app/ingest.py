@@ -15,20 +15,21 @@ from . import db, derive
 from .sources import ccil, ftrac, market
 
 
-def _slices_for(instrument, segment, from_date, to_date):
-    """Every (instrument, segment, date) slice a fetch covers.
+def _slices_for(records):
+    """Only the (instrument, segment, date) slices we actually received rows for.
 
-    Clearing the whole requested span -- not just the dates that came back --
-    is what makes a genuinely empty day record as empty instead of leaving
-    stale rows behind.
+    This deliberately does NOT clear the whole requested span. F-TRAC returns
+    no file both for a genuine market holiday and for a failed or throttled
+    export, and the two are indistinguishable from the outside -- so clearing
+    by request range meant one bad fetch silently deleted good history. It did:
+    a --days 7 run that came back empty wiped 2026-07-29..2026-08-06.
+
+    Replacing only the dates that returned data means a failed fetch is a
+    no-op instead of a deletion. The cost is that a day whose rows are later
+    withdrawn upstream keeps its old rows; that is far cheaper than losing
+    history that cannot be backfilled once F-TRAC's window has passed.
     """
-    out = set()
-    day = dt.date.fromisoformat(str(from_date))
-    end = dt.date.fromisoformat(str(to_date))
-    while day <= end:
-        out.add((instrument, segment, day.isoformat()))
-        day += dt.timedelta(days=1)
-    return out
+    return {(r["instrument"], r["segment"], r["deal_date"]) for r in records}
 
 
 def ingest_trades(conn, from_date, to_date, instruments=("CD", "CP", "CB"),
@@ -50,7 +51,7 @@ def ingest_trades(conn, from_date, to_date, instruments=("CD", "CP", "CB"),
         for seg in ftrac.INSTRUMENTS[inst][1]:
             recs, info = ftrac.fetch_range(inst, seg, from_date, to_date, progress)
             derive.enrich(recs)
-            db.replace_trades(conn, recs, _slices_for(inst, seg, from_date, to_date))
+            db.replace_trades(conn, recs, _slices_for(recs))
             total += len(recs)
 
             note = f"{len(recs)} rows ({info})"
